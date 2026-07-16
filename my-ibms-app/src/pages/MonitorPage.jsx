@@ -28,21 +28,21 @@ function MonitorGroupTab() {
   const [data, setData] = useState([
     {
       key: '1',
-      groupName: '温度监听组A',
+      groupName: '环境温度监听组A',
       registerIds: [1, 5],
       ruleId: 1,
       interval: 5000,
-      lastMonitorTime: '2024-07-15 15:00:00',
+      lastMonitorTime: '2026-07-15 15:00:00',
       maxCache: 10000,
       isMonitoring: true,
     },
     {
       key: '2',
-      groupName: '设备状态监听组',
+      groupName: '设备运行状态监听组',
       registerIds: [2, 4],
       ruleId: 2,
       interval: 10000,
-      lastMonitorTime: '2024-07-15 14:55:00',
+      lastMonitorTime: '2026-07-15 14:55:00',
       maxCache: 5000,
       isMonitoring: true,
     },
@@ -52,7 +52,7 @@ function MonitorGroupTab() {
       registerIds: [3],
       ruleId: 3,
       interval: 2000,
-      lastMonitorTime: '2024-07-15 15:00:30',
+      lastMonitorTime: '2026-07-15 15:00:30',
       maxCache: 20000,
       isMonitoring: false,
     },
@@ -233,15 +233,15 @@ function MonitorGroupTab() {
       >
         <Form form={form} layout="vertical" style={{ marginTop: 16 }}>
           <Form.Item name="groupName" label="监听组名" rules={[{ required: true, message: '请输入监听组名' }]}>
-            <Input placeholder="例如: 温度监听组A" />
+            <Input placeholder="例如: 环境温度监听组A" />
           </Form.Item>
           <Form.Item name="registerIds" label="寄存器编号组" rules={[{ required: true, message: '请选择寄存器' }]}>
             <Select mode="multiple" placeholder="选择关联的寄存器编号" options={[
-              { value: 1, label: '1 - 一楼大厅温度' },
+              { value: 1, label: '1 - 一层大厅环境温度' },
               { value: 2, label: '2 - 冷水机组运行状态' },
               { value: 3, label: '3 - 配电柜电流A相' },
-              { value: 4, label: '4 - 冷却塔风扇启停' },
-              { value: 5, label: '5 - 消防水泵压力' },
+              { value: 4, label: '4 - 冷却塔风扇启停控制' },
+              { value: 5, label: '5 - 消防水泵出口压力' },
             ]} />
           </Form.Item>
           <Form.Item name="ruleId" label="关联规则编号">
@@ -277,13 +277,13 @@ function MonitorGroupTab() {
 // ==================== 监听记录 Tab ====================
 function MonitorRecordTab() {
   const records = [
-    { key: '1', groupName: '温度监听组A', registerId: 1, value: '23.5', sampleTime: '2024-07-15 15:00:00' },
-    { key: '2', groupName: '温度监听组A', registerId: 5, value: '0.35', sampleTime: '2024-07-15 15:00:00' },
-    { key: '3', groupName: '设备状态监听组', registerId: 2, value: 'true', sampleTime: '2024-07-15 14:55:00' },
-    { key: '4', groupName: '设备状态监听组', registerId: 4, value: 'false', sampleTime: '2024-07-15 14:55:00' },
-    { key: '5', groupName: '配电监测组', registerId: 3, value: '128.56', sampleTime: '2024-07-15 15:00:30' },
-    { key: '6', groupName: '温度监听组A', registerId: 1, value: '23.6', sampleTime: '2024-07-15 14:55:00' },
-    { key: '7', groupName: '温度监听组A', registerId: 5, value: '0.34', sampleTime: '2024-07-15 14:55:00' },
+    { key: '1', groupName: '环境温度监听组A', registerId: 1, value: '24.5', sampleTime: '2026-07-15 15:00:00' },
+    { key: '2', groupName: '环境温度监听组A', registerId: 5, value: '0.42', sampleTime: '2026-07-15 15:00:00' },
+    { key: '3', groupName: '设备运行状态监听组', registerId: 2, value: 'true', sampleTime: '2026-07-15 14:55:00' },
+    { key: '4', groupName: '设备运行状态监听组', registerId: 4, value: 'false', sampleTime: '2026-07-15 14:55:00' },
+    { key: '5', groupName: '配电监测组', registerId: 3, value: '156.23', sampleTime: '2026-07-15 15:00:30' },
+    { key: '6', groupName: '环境温度监听组A', registerId: 1, value: '24.3', sampleTime: '2026-07-15 14:55:00' },
+    { key: '7', groupName: '环境温度监听组A', registerId: 5, value: '0.41', sampleTime: '2026-07-15 14:55:00' },
   ];
 
   const [filters, setFilters] = useState({ groupName: undefined, registerId: undefined });

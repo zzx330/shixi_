@@ -19,51 +19,51 @@ export default function WorkOrderPage() {
   const [data, setData] = useState([
     {
       key: '1',
-      id: 'WO-2024001',
-      title: '3楼空调机组异常停机',
+      id: 'WO-2026001',
+      title: '2号楼空调机组例行维保',
       status: '处理中',
       type: '维修类',
-      location: '3楼A区',
-      creator: '张工',
-      description: '3楼东侧大办公室空调突然停机，室内温度升至28℃，影响员工正常办公。',
+      location: '2号楼A区',
+      creator: '王工',
+      description: '2号楼东侧大办公室空调制冷效果下降，室内温度升至28℃，需排查制冷系统。',
       parentOrderId: '',
-      createTime: '2024-07-15 10:30',
+      createTime: '2026-07-15 10:30',
     },
     {
       key: '2',
-      id: 'WO-2024002',
+      id: 'WO-2026002',
       title: '配电柜定期巡检',
       status: '未处理',
       type: '定期巡检类',
-      location: 'B1配电室',
+      location: 'B2配电室',
       creator: '李工',
-      description: '按月度计划对B1配电室所有配电柜进行例行巡检，检查接线端子、温度等。',
+      description: '按月度计划对B2配电室所有配电柜进行例行巡检，检查接线端子、温度等。',
       parentOrderId: '',
-      createTime: '2024-07-15 09:00',
+      createTime: '2026-07-15 09:00',
     },
     {
       key: '3',
-      id: 'WO-2024003',
+      id: 'WO-2026003',
       title: '冷却塔风扇异响排查',
       status: '已处理',
       type: '维修类',
-      location: '楼顶',
-      creator: '王工',
-      description: '楼顶冷却塔2号风扇运行时发出异常噪音，需排查轴承或叶片问题。',
-      parentOrderId: 'WO-2024001',
-      createTime: '2024-07-14 16:20',
+      location: '顶层平台',
+      creator: '赵工',
+      description: '顶层平台冷却塔2号风扇运行时发出异常噪音，需排查轴承或叶片问题。',
+      parentOrderId: 'WO-2026001',
+      createTime: '2026-07-14 16:20',
     },
     {
       key: '4',
-      id: 'WO-2024004',
+      id: 'WO-2026004',
       title: '消防水泵月度测试',
       status: '已处理',
       type: '定期巡检类',
-      location: 'B1消防泵房',
-      creator: '赵工',
+      location: 'B2消防泵房',
+      creator: '孙工',
       description: '对消防水泵进行月度启动测试，检查出水压力是否达标。',
       parentOrderId: '',
-      createTime: '2024-07-14 14:00',
+      createTime: '2026-07-14 14:00',
     },
   ]);
 
@@ -248,7 +248,7 @@ export default function WorkOrderPage() {
       >
         <Form form={form} layout="vertical" style={{ marginTop: 16 }}>
           <Form.Item name="title" label="标题" rules={[{ required: true, message: '请输入工单标题' }]}>
-            <Input placeholder="例如: 3楼空调机组异常停机" />
+            <Input placeholder="例如: 2号楼空调机组例行维保" />
           </Form.Item>
           <Form.Item name="status" label="状态" rules={[{ required: true }]}>
             <Select
@@ -270,10 +270,10 @@ export default function WorkOrderPage() {
             />
           </Form.Item>
           <Form.Item name="location" label="位置" rules={[{ required: true, message: '请输入位置' }]}>
-            <Input placeholder="例如: 3楼A区" />
+            <Input placeholder="例如: 2号楼A区" />
           </Form.Item>
           <Form.Item name="creator" label="创建者" rules={[{ required: true, message: '请输入创建者' }]}>
-            <Input placeholder="例如: 张工" />
+            <Input placeholder="例如: 王工" />
           </Form.Item>
           <Form.Item name="description" label="描述">
             <Input.TextArea rows={3} placeholder="详细描述工单问题..." />

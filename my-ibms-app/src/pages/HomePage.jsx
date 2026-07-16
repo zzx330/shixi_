@@ -92,27 +92,27 @@ function SimpleLineChart({ data1, data2, labels, title }) {
 }
 
 export default function HomePage() {
-  // 模拟数据
+  // 模拟数据（已脱敏）
   const stats = {
-    protocolCount: 12,
-    totalPoints: 256,
-    activePoints: 230,
-    activeAlarms: 5,
+    protocolCount: 8,
+    totalPoints: 186,
+    activePoints: 165,
+    activeAlarms: 3,
   };
 
   // 最近7天趋势数据
   const chartLabels = ['7/9', '7/10', '7/11', '7/12', '7/13', '7/14', '7/15'];
-  const listenData = [120, 135, 142, 158, 165, 172, 180];
-  const alarmData = [3, 5, 2, 7, 4, 6, 5];
+  const listenData = [78, 92, 105, 113, 128, 136, 142];
+  const alarmData = [2, 4, 1, 5, 3, 4, 3];
 
-  // 最近工单（增加数据量以展示分页效果）
+  // 最近工单
   const recentOrders = [
-    { key: '1', id: 'WO-2024001', title: '3楼空调机组异常停机', status: '处理中', type: '维修类', location: '3楼A区', creator: '张工', time: '2024-07-15 10:30' },
-    { key: '2', id: 'WO-2024002', title: '配电柜定期巡检', status: '未处理', type: '定期巡检类', location: 'B1配电室', creator: '李工', time: '2024-07-15 09:00' },
-    { key: '3', id: 'WO-2024003', title: '冷却塔风扇异响排查', status: '已处理', type: '维修类', location: '楼顶', creator: '王工', time: '2024-07-14 16:20' },
-    { key: '4', id: 'WO-2024004', title: '消防水泵月度测试', status: '已处理', type: '定期巡检类', location: 'B1消防泵房', creator: '赵工', time: '2024-07-14 14:00' },
-    { key: '5', id: 'WO-2024005', title: '新风系统滤网更换', status: '未处理', type: '维修类', location: '5楼机房', creator: '孙工', time: '2024-07-14 11:00' },
-    { key: '6', id: 'WO-2024006', title: '电梯年检保养', status: '已处理', type: '定期巡检类', location: '全楼层', creator: '周工', time: '2024-07-13 15:30' },
+    { key: '1', id: 'WO-2026001', title: '2号楼空调机组例行维保', status: '处理中', type: '维修类', location: '2号楼A区', creator: '王工', time: '2026-07-15 10:30' },
+    { key: '2', id: 'WO-2026002', title: '配电柜定期巡检', status: '未处理', type: '定期巡检类', location: 'B2配电室', creator: '李工', time: '2026-07-15 09:00' },
+    { key: '3', id: 'WO-2026003', title: '冷却塔风扇异响排查', status: '已处理', type: '维修类', location: '顶层平台', creator: '赵工', time: '2026-07-14 16:20' },
+    { key: '4', id: 'WO-2026004', title: '消防水泵月度测试', status: '已处理', type: '定期巡检类', location: 'B2消防泵房', creator: '孙工', time: '2026-07-14 14:00' },
+    { key: '5', id: 'WO-2026005', title: '新风系统滤网更换', status: '未处理', type: '维修类', location: '3号楼机房', creator: '刘工', time: '2026-07-14 11:00' },
+    { key: '6', id: 'WO-2026006', title: '电梯年检保养', status: '已处理', type: '定期巡检类', location: '全楼层', creator: '陈工', time: '2026-07-13 15:30' },
   ];
 
   const statusColor = { '未处理': 'red', '处理中': 'orange', '已处理': 'green' };

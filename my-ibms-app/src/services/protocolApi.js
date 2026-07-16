@@ -11,19 +11,19 @@ const STORAGE_KEY = 'ibms_protocols';
 // 默认示例数据
 const DEFAULT_DATA = [
   {
-    key: '1', id: 1, ip: '192.168.1.100', port: 502,
+    key: '1', id: 1, ip: '10.88.1.10', port: 502,
     name: 'Modbus TCP',
-    config: { ip: '192.168.1.100', port: '502', protocolType: 'TCP' },
+    config: { ip: '10.88.1.10', port: '502', protocolType: 'TCP' },
   },
   {
-    key: '2', id: 2, ip: '192.168.1.101', port: 2000,
+    key: '2', id: 2, ip: '10.88.1.20', port: 47808,
     name: 'BACnet/IP',
-    config: { devicePort: '2000', deviceNetworkAddr: '192.168.1.101', localIpMaskLen: '24' },
+    config: { devicePort: '47808', deviceNetworkAddr: '10.88.1.20', localIpMaskLen: '24' },
   },
   {
-    key: '3', id: 3, ip: '10.0.0.50', port: 4840,
+    key: '3', id: 3, ip: '10.88.2.50', port: 4840,
     name: 'OPC UA',
-    config: { ip: '10.0.0.50', port: '4840', protocolType: 'UA' },
+    config: { ip: '10.88.2.50', port: '4840', protocolType: 'UA' },
   },
 ];
 

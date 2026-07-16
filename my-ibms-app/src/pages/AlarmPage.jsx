@@ -22,12 +22,12 @@ function AlarmRuleTab() {
     {
       key: '1',
       id: 1,
-      ruleName: '温度过高告警',
+      ruleName: '环境温度过高告警',
       registerId: 1,
       activateRule: '>= 30',
       resetRule: '<= 25',
       level: 2,
-      createTime: '2024-07-01 08:00',
+      createTime: '2026-06-01 08:00',
     },
     {
       key: '2',
@@ -37,7 +37,7 @@ function AlarmRuleTab() {
       activateRule: '= false',
       resetRule: '= true',
       level: 1,
-      createTime: '2024-07-01 08:00',
+      createTime: '2026-06-01 08:00',
     },
     {
       key: '3',
@@ -47,17 +47,17 @@ function AlarmRuleTab() {
       activateRule: '>= 200',
       resetRule: '<= 180',
       level: 3,
-      createTime: '2024-07-02 10:30',
+      createTime: '2026-06-02 10:30',
     },
     {
       key: '4',
       id: 4,
-      ruleName: '水泵压力低告警',
+      ruleName: '水泵出口压力低告警',
       registerId: 5,
       activateRule: '<= 0.1',
       resetRule: '>= 0.3',
       level: 2,
-      createTime: '2024-07-03 14:00',
+      createTime: '2026-06-03 14:00',
     },
   ]);
 
@@ -177,7 +177,7 @@ function AlarmRuleTab() {
       >
         <Form form={form} layout="vertical" style={{ marginTop: 16 }}>
           <Form.Item name="ruleName" label="规则名" rules={[{ required: true, message: '请输入规则名' }]}>
-            <Input placeholder="例如: 温度过高告警" />
+            <Input placeholder="例如: 环境温度过高告警" />
           </Form.Item>
           <Form.Item name="registerId" label="关联寄存器编号" rules={[{ required: true }]}>
             <InputNumber min={1} style={{ width: '100%' }} placeholder="关联的寄存器 ID" />
@@ -214,10 +214,10 @@ function ActiveAlarmTab() {
       ruleName: '电流过载告警',
       registerId: 3,
       registerName: '配电柜电流A相',
-      currentValue: '215.3',
+      currentValue: '228.6',
       threshold: '>= 200',
       level: 3,
-      startTime: '2024-07-15 14:30',
+      startTime: '2026-07-15 14:30',
       status: '告警中',
     },
     {
@@ -225,11 +225,11 @@ function ActiveAlarmTab() {
       id: 'ALM-002',
       ruleName: '设备离线告警',
       registerId: 4,
-      registerName: '冷却塔风扇启停',
+      registerName: '冷却塔风扇启停控制',
       currentValue: 'false',
       threshold: '= false',
       level: 1,
-      startTime: '2024-07-15 12:15',
+      startTime: '2026-07-15 12:15',
       status: '告警中',
     },
   ]);
@@ -310,24 +310,24 @@ function EndedAlarmTab() {
     {
       key: '1',
       id: 'ALM-000',
-      ruleName: '温度过高告警',
-      registerName: '一楼大厅温度',
-      currentValue: '31.2',
+      ruleName: '环境温度过高告警',
+      registerName: '一层大厅环境温度',
+      currentValue: '31.8',
       threshold: '>= 30',
       level: 2,
-      startTime: '2024-07-15 08:30',
-      endTime: '2024-07-15 09:45',
+      startTime: '2026-07-15 08:30',
+      endTime: '2026-07-15 09:45',
     },
     {
       key: '2',
       id: 'ALM-000b',
-      ruleName: '水泵压力低告警',
-      registerName: '消防水泵压力',
-      currentValue: '0.08',
+      ruleName: '水泵出口压力低告警',
+      registerName: '消防水泵出口压力',
+      currentValue: '0.07',
       threshold: '<= 0.1',
       level: 2,
-      startTime: '2024-07-14 22:00',
-      endTime: '2024-07-14 23:30',
+      startTime: '2026-07-14 22:00',
+      endTime: '2026-07-14 23:30',
     },
   ];
 

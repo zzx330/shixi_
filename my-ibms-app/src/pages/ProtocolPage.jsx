@@ -370,7 +370,7 @@ export default function ProtocolPage() {
       >
         <Form form={form} layout="vertical" style={{ marginTop: 16 }}>
           <Form.Item name="ip" label="IP 地址" rules={[{ required: true, message: '请输入 IP 地址' }]}>
-            <Input placeholder="例如: 192.168.1.100" />
+            <Input placeholder="例如: 10.88.1.10" />
           </Form.Item>
           <Form.Item name="port" label="端口" rules={[{ required: true, message: '请输入端口号' }]}>
             <InputNumber min={1} max={65535} style={{ width: '100%' }} placeholder="例如: 502" />
@@ -438,11 +438,11 @@ export default function ProtocolPage() {
           onChange={(e) => setImportText(e.target.value)}
           placeholder={`[
   {
-    "ip": "192.168.1.88",
+    "ip": "10.88.3.100",
     "port": 502,
     "name": "Modbus TCP",
     "config": {
-      "ip": "192.168.1.88",
+      "ip": "10.88.3.100",
       "port": "502",
       "protocolType": "tcp"
     }

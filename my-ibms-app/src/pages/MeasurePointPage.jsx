@@ -20,7 +20,7 @@ export default function MeasurePointPage() {
     {
       key: '1',
       id: 1,
-      registerName: '一楼大厅温度',
+      registerName: '一层大厅环境温度',
       registerAddress: '40001',
       category: 'Modbus TCP',
       valueType: 'float',
@@ -29,7 +29,7 @@ export default function MeasurePointPage() {
       scaleFactor: 1.0,
       unit: '℃',
       protocolId: 1,
-      location: '1楼大厅',
+      location: '1层大厅',
     },
     {
       key: '2',
@@ -43,7 +43,7 @@ export default function MeasurePointPage() {
       scaleFactor: 1.0,
       unit: '-',
       protocolId: 2,
-      location: 'B1冷冻机房',
+      location: 'B2冷冻机房',
     },
     {
       key: '3',
@@ -57,12 +57,12 @@ export default function MeasurePointPage() {
       scaleFactor: 0.01,
       unit: 'A',
       protocolId: 3,
-      location: 'B1配电室',
+      location: 'B2配电室',
     },
     {
       key: '4',
       id: 4,
-      registerName: '冷却塔风扇启停',
+      registerName: '冷却塔风扇启停控制',
       registerAddress: '00001',
       category: 'Modbus TCP',
       valueType: 'boolean',
@@ -71,12 +71,12 @@ export default function MeasurePointPage() {
       scaleFactor: 1.0,
       unit: '-',
       protocolId: 1,
-      location: '楼顶',
+      location: '顶层平台',
     },
     {
       key: '5',
       id: 5,
-      registerName: '消防水泵压力',
+      registerName: '消防水泵出口压力',
       registerAddress: '40005',
       category: 'Modbus TCP',
       valueType: 'float',
@@ -85,7 +85,7 @@ export default function MeasurePointPage() {
       scaleFactor: 0.1,
       unit: 'MPa',
       protocolId: 1,
-      location: 'B1消防泵房',
+      location: 'B2消防泵房',
     },
   ]);
 
@@ -238,7 +238,7 @@ export default function MeasurePointPage() {
             label="寄存器名"
             rules={[{ required: true, message: '请输入寄存器名' }]}
           >
-            <Input placeholder="例如: 一楼大厅温度" />
+            <Input placeholder="例如: 一层大厅环境温度" />
           </Form.Item>
           <Form.Item
             name="registerAddress"
@@ -289,7 +289,7 @@ export default function MeasurePointPage() {
             <InputNumber min={1} style={{ width: '100%' }} placeholder="关联的协议 ID" />
           </Form.Item>
           <Form.Item name="location" label="位置">
-            <Input placeholder="例如: 1楼大厅" />
+            <Input placeholder="例如: 1层大厅" />
           </Form.Item>
         </Form>
       </Modal>
