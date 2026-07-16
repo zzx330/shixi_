@@ -13,3 +13,13 @@ body {
 #root {
   min-height: 100vh;
 }
+
+/* 所有表格单元格内容居中 */
+.ant-table-cell {
+  text-align: center !important;
+}
+
+/* 通信协议 JSON 模式下的代码块保持左对齐 */
+.ant-table-cell pre {
+  text-align: left !important;
+}

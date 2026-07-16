@@ -53,7 +53,7 @@ export default function WorkOrderPage() {
     },
     { title: '类型', dataIndex: 'type', key: 'type', width: 100 },
     { title: '位置', dataIndex: 'location', key: 'location', width: 110 },
-    { title: '创建者', dataIndex: 'creator', key: 'creator', width: 70 },
+    { title: '创建者', dataIndex: 'creator', key: 'creator', width: 80 },
     {
       title: '描述',
       dataIndex: 'description',
@@ -72,7 +72,8 @@ export default function WorkOrderPage() {
     {
       title: '操作',
       key: 'action',
-      width: 180,
+      width: 200,
+      align: 'center',
       fixed: 'right',
       render: (_, record) => (
         <Space size={0}>

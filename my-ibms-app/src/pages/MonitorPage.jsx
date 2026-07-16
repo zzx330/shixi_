@@ -59,7 +59,7 @@ function MonitorGroupTab() {
         </Space>
       ),
     },
-    { title: '关联规则编号', dataIndex: 'ruleId', key: 'ruleId', width: 110 },
+    { title: '关联规则编号', dataIndex: 'ruleId', key: 'ruleId', width: 130 },
     {
       title: '监听间隔 (ms)',
       dataIndex: 'interval',
@@ -68,7 +68,7 @@ function MonitorGroupTab() {
       render: (v) => `${v} ms`,
     },
     { title: '上次监听时间', dataIndex: 'lastMonitorTime', key: 'lastMonitorTime', width: 170 },
-    { title: '最大缓存数', dataIndex: 'maxCache', key: 'maxCache', width: 100 },
+    { title: '最大缓存数', dataIndex: 'maxCache', key: 'maxCache', width: 120 },
     {
       title: '是否监听',
       dataIndex: 'isMonitoring',
@@ -87,7 +87,8 @@ function MonitorGroupTab() {
     {
       title: '操作',
       key: 'action',
-      width: 180,
+      width: 200,
+      align: 'center',
       fixed: 'right',
       render: (_, record) => (
         <Space size={0}>

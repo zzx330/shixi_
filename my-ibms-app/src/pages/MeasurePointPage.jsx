@@ -49,16 +49,17 @@ export default function MeasurePointPage() {
       render: (c) => <Tag color="blue">{c}</Tag>,
     },
     { title: '值类型', dataIndex: 'valueType', key: 'valueType', width: 80 },
-    { title: '读写类型', dataIndex: 'readWriteType', key: 'readWriteType', width: 80 },
+    { title: '读写类型', dataIndex: 'readWriteType', key: 'readWriteType', width: 90 },
     { title: '精度', dataIndex: 'precision', key: 'precision', width: 60 },
-    { title: '比例系数', dataIndex: 'scaleFactor', key: 'scaleFactor', width: 80 },
+    { title: '比例系数', dataIndex: 'scaleFactor', key: 'scaleFactor', width: 90 },
     { title: '单位', dataIndex: 'unit', key: 'unit', width: 60 },
-    { title: '协议编号', dataIndex: 'protocolId', key: 'protocolId', width: 80 },
+    { title: '协议编号', dataIndex: 'protocolId', key: 'protocolId', width: 90 },
     { title: '位置', dataIndex: 'location', key: 'location', width: 120 },
     {
       title: '操作',
       key: 'action',
-      width: 180,
+      width: 200,
+      align: 'center',
       fixed: 'right',
       render: (_, record) => (
         <Space size={0}>

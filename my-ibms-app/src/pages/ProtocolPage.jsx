@@ -222,12 +222,13 @@ export default function ProtocolPage() {
     {
       title: '操作',
       key: 'action',
-      width: 150,
+      width: 200,
+      align: 'center',
       render: (_, record) => (
-        <Space>
-          <Button type="link" size="small" icon={<EditOutlined />} onClick={() => handleEdit(record)}>编辑</Button>
+        <Space size={0}>
+          <Button type="link" size="small" icon={<EditOutlined />} onClick={() => handleEdit(record)} style={{ padding: '4px 8px' }}>编辑</Button>
           <Popconfirm title="确定删除该协议？" onConfirm={() => handleDelete(record.key)}>
-            <Button type="link" danger size="small" icon={<DeleteOutlined />}>删除</Button>
+            <Button type="link" danger size="small" icon={<DeleteOutlined />} style={{ padding: '4px 8px' }}>删除</Button>
           </Popconfirm>
         </Space>
       ),

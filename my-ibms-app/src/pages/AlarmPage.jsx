@@ -56,7 +56,7 @@ function AlarmRuleTab({ rules, setRules }) {
     { title: '告警等级', dataIndex: 'level', key: 'level', width: 120, render: (l) => <Tag color={levelColor[l]}>{levelText[l]}</Tag> },
     { title: '创建时间', dataIndex: 'createTime', key: 'createTime', width: 160 },
     {
-      title: '操作', key: 'action', width: 180,
+      title: '操作', key: 'action', width: 200, align: 'center',
       render: (_, record) => (
         <Space size={0}>
           <Button type="link" size="small" icon={<EditOutlined />} onClick={() => handleEdit(record)} style={{ padding: '4px 8px' }}>编辑</Button>
@@ -140,7 +140,7 @@ function ActiveAlarmTab({ activeAlarms, setActiveAlarms, setEndedAlarms }) {
     { title: '开始时间', dataIndex: 'startTime', key: 'startTime', width: 160 },
     { title: '状态', dataIndex: 'status', key: 'status', width: 80, render: (s) => <Tag color="red">{s}</Tag> },
     {
-      title: '操作', key: 'action', width: 120,
+      title: '操作', key: 'action', width: 120, align: 'center',
       render: (_, record) => (
         <Button type="primary" size="small" icon={<CheckCircleOutlined />} onClick={() => confirmAlarm(record)}>确认告警</Button>
       ),

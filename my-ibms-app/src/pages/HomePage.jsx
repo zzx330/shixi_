@@ -126,7 +126,7 @@ export default function HomePage() {
     { title: '状态', dataIndex: 'status', key: 'status', width: 70, render: (s) => <Tag color={statusColor[s] || 'default'}>{s}</Tag> },
     { title: '类型', dataIndex: 'type', key: 'type', width: 85 },
     { title: '位置', dataIndex: 'location', key: 'location', width: 90 },
-    { title: '创建者', dataIndex: 'creator', key: 'creator', width: 55 },
+    { title: '创建者', dataIndex: 'creator', key: 'creator', width: 70 },
     { title: '时间', dataIndex: 'time', key: 'time', width: 140 },
   ];
 
