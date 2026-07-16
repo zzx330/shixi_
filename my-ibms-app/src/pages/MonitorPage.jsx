@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Card,
   Tabs,
@@ -20,43 +20,22 @@ import {
   SearchOutlined,
   DeleteOutlined,
   EditOutlined,
-  FilterOutlined,
 } from '@ant-design/icons';
+import { loadData, saveData } from '../services/storage';
+
+const STORAGE_KEY_GROUPS = 'ibms_monitor_groups';
+
+const DEFAULT_GROUPS = [
+  { key: '1', groupName: '环境温度监听组A', registerIds: [1, 5], ruleId: 1, interval: 5000, lastMonitorTime: '2026-07-15 15:00:00', maxCache: 10000, isMonitoring: true },
+  { key: '2', groupName: '设备运行状态监听组', registerIds: [2, 4], ruleId: 2, interval: 10000, lastMonitorTime: '2026-07-15 14:55:00', maxCache: 5000, isMonitoring: true },
+  { key: '3', groupName: '配电监测组', registerIds: [3], ruleId: 3, interval: 2000, lastMonitorTime: '2026-07-15 15:00:30', maxCache: 20000, isMonitoring: false },
+];
 
 // ==================== 监听组配置 Tab ====================
 function MonitorGroupTab() {
-  const [data, setData] = useState([
-    {
-      key: '1',
-      groupName: '环境温度监听组A',
-      registerIds: [1, 5],
-      ruleId: 1,
-      interval: 5000,
-      lastMonitorTime: '2026-07-15 15:00:00',
-      maxCache: 10000,
-      isMonitoring: true,
-    },
-    {
-      key: '2',
-      groupName: '设备运行状态监听组',
-      registerIds: [2, 4],
-      ruleId: 2,
-      interval: 10000,
-      lastMonitorTime: '2026-07-15 14:55:00',
-      maxCache: 5000,
-      isMonitoring: true,
-    },
-    {
-      key: '3',
-      groupName: '配电监测组',
-      registerIds: [3],
-      ruleId: 3,
-      interval: 2000,
-      lastMonitorTime: '2026-07-15 15:00:30',
-      maxCache: 20000,
-      isMonitoring: false,
-    },
-  ]);
+  const [data, setData] = useState(() => loadData(STORAGE_KEY_GROUPS, DEFAULT_GROUPS));
+
+  useEffect(() => { saveData(STORAGE_KEY_GROUPS, data); }, [data]);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -108,16 +87,13 @@ function MonitorGroupTab() {
     {
       title: '操作',
       key: 'action',
-      width: 140,
+      width: 180,
+      fixed: 'right',
       render: (_, record) => (
-        <Space>
-          <Button type="link" size="small" icon={<EditOutlined />} onClick={() => handleEdit(record)}>
-            编辑
-          </Button>
+        <Space size={0}>
+          <Button type="link" size="small" icon={<EditOutlined />} onClick={() => handleEdit(record)} style={{ padding: '4px 8px' }}>编辑</Button>
           <Popconfirm title="确定删除该监听组？" onConfirm={() => handleDelete(record.key)}>
-            <Button type="link" danger size="small" icon={<DeleteOutlined />}>
-              删除
-            </Button>
+            <Button type="link" danger size="small" icon={<DeleteOutlined />} style={{ padding: '4px 8px' }}>删除</Button>
           </Popconfirm>
         </Space>
       ),

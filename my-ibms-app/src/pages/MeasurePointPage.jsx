@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Card,
   Table,
@@ -14,80 +14,22 @@ import {
   Tag,
 } from 'antd';
 import { PlusOutlined, SearchOutlined, DeleteOutlined, EditOutlined } from '@ant-design/icons';
+import { loadData, saveData } from '../services/storage';
+
+const STORAGE_KEY = 'ibms_measure_points';
+
+const DEFAULT_DATA = [
+  { key: '1', id: 1, registerName: '一层大厅环境温度', registerAddress: '40001', category: 'Modbus TCP', valueType: 'float', readWriteType: 'R/W', precision: 1, scaleFactor: 1.0, unit: '℃', protocolId: 1, location: '1层大厅' },
+  { key: '2', id: 2, registerName: '冷水机组运行状态', registerAddress: '30001', category: 'BACnet/IP', valueType: 'boolean', readWriteType: 'R', precision: 0, scaleFactor: 1.0, unit: '-', protocolId: 2, location: 'B2冷冻机房' },
+  { key: '3', id: 3, registerName: '配电柜电流A相', registerAddress: 'ns=2;s=Current.L1', category: 'OPC UA', valueType: 'float', readWriteType: 'R', precision: 2, scaleFactor: 0.01, unit: 'A', protocolId: 3, location: 'B2配电室' },
+  { key: '4', id: 4, registerName: '冷却塔风扇启停控制', registerAddress: '00001', category: 'Modbus TCP', valueType: 'boolean', readWriteType: 'R/W', precision: 0, scaleFactor: 1.0, unit: '-', protocolId: 1, location: '顶层平台' },
+  { key: '5', id: 5, registerName: '消防水泵出口压力', registerAddress: '40005', category: 'Modbus TCP', valueType: 'float', readWriteType: 'R', precision: 2, scaleFactor: 0.1, unit: 'MPa', protocolId: 1, location: 'B2消防泵房' },
+];
 
 export default function MeasurePointPage() {
-  const [data, setData] = useState([
-    {
-      key: '1',
-      id: 1,
-      registerName: '一层大厅环境温度',
-      registerAddress: '40001',
-      category: 'Modbus TCP',
-      valueType: 'float',
-      readWriteType: 'R/W',
-      precision: 1,
-      scaleFactor: 1.0,
-      unit: '℃',
-      protocolId: 1,
-      location: '1层大厅',
-    },
-    {
-      key: '2',
-      id: 2,
-      registerName: '冷水机组运行状态',
-      registerAddress: '30001',
-      category: 'BACnet/IP',
-      valueType: 'boolean',
-      readWriteType: 'R',
-      precision: 0,
-      scaleFactor: 1.0,
-      unit: '-',
-      protocolId: 2,
-      location: 'B2冷冻机房',
-    },
-    {
-      key: '3',
-      id: 3,
-      registerName: '配电柜电流A相',
-      registerAddress: 'ns=2;s=Current.L1',
-      category: 'OPC UA',
-      valueType: 'float',
-      readWriteType: 'R',
-      precision: 2,
-      scaleFactor: 0.01,
-      unit: 'A',
-      protocolId: 3,
-      location: 'B2配电室',
-    },
-    {
-      key: '4',
-      id: 4,
-      registerName: '冷却塔风扇启停控制',
-      registerAddress: '00001',
-      category: 'Modbus TCP',
-      valueType: 'boolean',
-      readWriteType: 'R/W',
-      precision: 0,
-      scaleFactor: 1.0,
-      unit: '-',
-      protocolId: 1,
-      location: '顶层平台',
-    },
-    {
-      key: '5',
-      id: 5,
-      registerName: '消防水泵出口压力',
-      registerAddress: '40005',
-      category: 'Modbus TCP',
-      valueType: 'float',
-      readWriteType: 'R',
-      precision: 2,
-      scaleFactor: 0.1,
-      unit: 'MPa',
-      protocolId: 1,
-      location: 'B2消防泵房',
-    },
-  ]);
+  const [data, setData] = useState(() => loadData(STORAGE_KEY, DEFAULT_DATA));
+
+  useEffect(() => { saveData(STORAGE_KEY, data); }, [data]);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingRecord, setEditingRecord] = useState(null);
@@ -116,17 +58,13 @@ export default function MeasurePointPage() {
     {
       title: '操作',
       key: 'action',
-      width: 140,
+      width: 180,
       fixed: 'right',
       render: (_, record) => (
-        <Space>
-          <Button type="link" size="small" icon={<EditOutlined />} onClick={() => handleEdit(record)}>
-            编辑
-          </Button>
+        <Space size={0}>
+          <Button type="link" size="small" icon={<EditOutlined />} onClick={() => handleEdit(record)} style={{ padding: '4px 8px' }}>编辑</Button>
           <Popconfirm title="确定删除该测点？" onConfirm={() => handleDelete(record.key)}>
-            <Button type="link" danger size="small" icon={<DeleteOutlined />}>
-              删除
-            </Button>
+            <Button type="link" danger size="small" icon={<DeleteOutlined />} style={{ padding: '4px 8px' }}>删除</Button>
           </Popconfirm>
         </Space>
       ),

@@ -1,4 +1,5 @@
-import React, { useEffect, useRef } from 'react';
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Row, Col, Card, Statistic, Table, Tag } from 'antd';
 import {
   ApiOutlined,
@@ -92,6 +93,8 @@ function SimpleLineChart({ data1, data2, labels, title }) {
 }
 
 export default function HomePage() {
+  const navigate = useNavigate();
+
   // 模拟数据（已脱敏）
   const stats = {
     protocolCount: 8,
@@ -132,7 +135,7 @@ export default function HomePage() {
       {/* 上方四大统计卡片 */}
       <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
         <Col xs={24} sm={12} md={6}>
-          <Card bordered={false} hoverable>
+          <Card bordered={false} hoverable onClick={() => navigate('/protocol')} style={{ cursor: 'pointer' }}>
             <Statistic
               title="接入协议数"
               value={stats.protocolCount}
@@ -143,7 +146,7 @@ export default function HomePage() {
           </Card>
         </Col>
         <Col xs={24} sm={12} md={6}>
-          <Card bordered={false} hoverable>
+          <Card bordered={false} hoverable onClick={() => navigate('/measure-point')} style={{ cursor: 'pointer' }}>
             <Statistic
               title="点位总数 (物理+逻辑)"
               value={stats.totalPoints}
@@ -154,7 +157,7 @@ export default function HomePage() {
           </Card>
         </Col>
         <Col xs={24} sm={12} md={6}>
-          <Card bordered={false} hoverable>
+          <Card bordered={false} hoverable onClick={() => navigate('/monitor')} style={{ cursor: 'pointer' }}>
             <Statistic
               title="活跃监听点位"
               value={stats.activePoints}
@@ -165,7 +168,7 @@ export default function HomePage() {
           </Card>
         </Col>
         <Col xs={24} sm={12} md={6}>
-          <Card bordered={false} hoverable>
+          <Card bordered={false} hoverable onClick={() => navigate('/alarm')} style={{ cursor: 'pointer' }}>
             <Statistic
               title="当前告警数"
               value={stats.activeAlarms}

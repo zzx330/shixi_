@@ -1,0 +1,45 @@
+# ============================================
+# IBMS 工控管理系统 - 环境要求
+# 使用方法：逐一确认以下条件满足即可
+# ============================================
+
+# 1. Node.js 运行环境（必须）
+# 下载地址: https://nodejs.org/
+# 要求版本: >= 18.0.0 (推荐 20.x LTS 或 22.x LTS)
+# 验证命令: node -v
+node>=18.0.0
+
+# 2. npm 包管理器（随 Node.js 自带）
+# 验证命令: npm -v
+npm>=9.0.0
+
+# 3. 安装项目依赖（在项目根目录执行）
+# npm install
+# 该命令会根据 package.json 自动安装以下包：
+#
+# --- 生产依赖 ---
+# react@^19.2.7             前端框架
+# react-dom@^19.2.7         React DOM 渲染
+# react-router-dom@^7.18.1  前端路由
+# antd@^6.5.1               Ant Design UI 组件库
+# @ant-design/icons@^6.3.2  Ant Design 图标库
+#
+# --- 开发依赖 ---
+# vite@^8.1.1               构建工具
+# @vitejs/plugin-react@^6.0.3  Vite React 插件
+# eslint@^10.6.0            代码检查
+# @eslint/js@^10.0.1        ESLint JS 规则
+# eslint-plugin-react-hooks@^7.1.1    React Hooks 检查
+# eslint-plugin-react-refresh@^0.5.3  HMR 支持
+# globals@^17.7.0           全局变量定义
+# @types/react@^19.2.17     React 类型定义
+# @types/react-dom@^19.2.3  React DOM 类型定义
+
+# ============================================
+# 快速启动步骤
+# ============================================
+# 1. 安装 Node.js (>=18)
+# 2. 打开终端，进入项目目录
+# 3. npm install
+# 4. npm run dev
+# 5. 浏览器打开 http://localhost:5173
