@@ -1,0 +1,1838 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RBAC 智能工单管理系统原型</title>
+    <!-- 引入 Axure 原型常用样式和 FontAwesome 图标 -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- ================================================================= -->
+    <!-- 【数据配置中心】在这里查看和修改所有用户的账号密码 (已移至最前) -->
+    <!-- ================================================================= -->
+    <script>
+        // 模拟静态数据库（不影响后续逻辑，方便随时查阅和修改）
+        const DEFAULT_USERS = [
+            { id: 1001, username: 'admin',    realname: '张折喜',        role: 'ADMIN',     active: true, password: 'admin' },
+            { id: 1002, username: 'boss',     realname: '王总',          role: 'LEADER',    active: true, password: 'boss'  },
+            { id: 1003, username: 'kefu01',   realname: '李丽 (客服专员)',role: 'CS',        active: true, password: 'kefu'  },
+            { id: 1004, username: 'xj01',     realname: '陈巡检-海淀区',  role: 'INSPECTOR', active: true, password: 'xj'    },
+            { id: 1005, username: 'xj02',     realname: '周巡检-朝阳区',  role: 'INSPECTOR', active: true, password: 'xj'    }
+        ];
+    </script>
+
+    <style>
+        /* Axure 风格基础变量与复位 */
+        :root {
+            --axure-font: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+            --primary-color: #1890ff;
+            --primary-hover: #40a9ff;
+            --success-color: #52c41a;
+            --warning-color: #faad14;
+            --error-color: #f5222d;
+            --border-color: #d9d9d9;
+            --bg-light: #f5f5f5;
+            --text-main: #333333;
+            --text-secondary: #666666;
+            --sidebar-width: 220px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--axure-font);
+            color: var(--text-main);
+            background-color: var(--bg-light);
+            font-size: 14px;
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        /* 统一滚动条样式（仿Axure预览） */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #ccc;
+            border-radius: 3px;
+        }
+
+        /* ================= 登录页 ================= */
+        #login-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: linear-gradient(135deg, #141e30, #243b55);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        .login-card {
+            background: #ffffff;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            width: 400px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .login-header h2 {
+            color: #1e2d3d;
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        .login-header p {
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #4a5568;
+        }
+
+        .input-icon-wrapper {
+            position: relative;
+        }
+
+        .input-icon-wrapper i {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #a0aec0;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px 12px 10px 35px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            outline: none;
+            transition: all 0.2s;
+            font-size: 14px;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(24,144,255,0.2);
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 12px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .login-btn:hover {
+            background: var(--primary-hover);
+        }
+
+        /* ================= 主布局 ================= */
+        #main-layout {
+            display: none; /* 登录后渲染 */
+            height: 100vh;
+            grid-template-columns: var(--sidebar-width) 1fr;
+            grid-template-rows: 60px 1fr;
+            grid-template-areas: 
+                "header header"
+                "sidebar content";
+        }
+
+        /* 顶部导航栏 */
+        header {
+            grid-area: header;
+            background-color: #001529;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            border-bottom: 1px solid #002140;
+            z-index: 100;
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #fff;
+        }
+
+        .logo-area i {
+            color: var(--primary-color);
+            font-size: 22px;
+        }
+
+        .user-status {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .role-badge {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            color: #fff;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .logout-btn {
+            background: none;
+            border: none;
+            color: #ff4d4f;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .logout-btn:hover {
+            color: #ff7875;
+        }
+
+        /* 侧边导航栏 */
+        aside {
+            grid-area: sidebar;
+            background-color: #001529;
+            color: rgba(255, 255, 255, 0.65);
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid #002140;
+        }
+
+        .nav-menu {
+            list-style: none;
+            padding-top: 15px;
+        }
+
+        .nav-item {
+            padding: 14px 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.2s;
+            font-size: 14px;
+            border-left: 4px solid transparent;
+        }
+
+        .nav-item:hover {
+            color: #fff;
+            background-color: rgba(255,255,255,0.05);
+        }
+
+        .nav-item.active {
+            color: #fff;
+            background-color: #1890ff;
+            border-left: 4px solid #40a9ff;
+        }
+
+        /* 主体内容区 */
+        main {
+            grid-area: content;
+            padding: 20px;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+            animation: fadeIn 0.25s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 统一标题 */
+        .page-header {
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .page-header h1 {
+            font-size: 20px;
+            color: #1f2937;
+            font-weight: 600;
+        }
+
+        /* ================= 业务公共组件 ================= */
+        .card {
+            background: white;
+            border-radius: 6px;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .filter-bar {
+            background: white;
+            padding: 15px 20px;
+            border-radius: 6px;
+            border: 1px solid #e5e7eb;
+            margin-bottom: 15px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .filter-group label {
+            font-size: 13px;
+            color: var(--text-secondary);
+            white-space: nowrap;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid var(--border-color);
+            background: white;
+            color: var(--text-main);
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+        .btn-primary:hover {
+            background: var(--primary-hover);
+        }
+
+        .btn-success {
+            background: var(--success-color);
+            color: white;
+            border-color: var(--success-color);
+        }
+        .btn-success:hover {
+            background: #73d13d;
+        }
+
+        .btn-danger {
+            background: var(--error-color);
+            color: white;
+            border-color: var(--error-color);
+        }
+        .btn-danger:hover {
+            background: #ff7875;
+        }
+
+        .btn-sm {
+            padding: 4px 10px;
+            font-size: 12px;
+        }
+
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+            background: white;
+            border-radius: 6px;
+            border: 1px solid #e5e7eb;
+        }
+
+        .axure-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 13px;
+        }
+
+        .axure-table th {
+            background-color: #fafafa;
+            color: rgba(0, 0, 0, 0.85);
+            font-weight: 600;
+            padding: 12px 16px;
+            border-bottom: 1px solid #f0f0f0;
+            white-space: nowrap;
+        }
+
+        .axure-table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid #f0f0f0;
+            color: var(--text-main);
+            vertical-align: middle;
+        }
+
+        .axure-table tr:hover {
+            background-color: #fafafa;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+        .badge-info { background: #e6f7ff; color: #1890ff; border: 1px solid #91d5ff; }
+        .badge-success { background: #f6ffed; color: #52c41a; border: 1px solid #b7eb8f; }
+        .badge-warning { background: #fffbe6; color: #faad14; border: 1px solid #ffe58f; }
+        .badge-danger { background: #fff1f0; color: #f5222d; border: 1px solid #ffa39e; }
+        .badge-default { background: #f5f5f5; color: rgba(0, 0, 0, 0.65); border: 1px solid #d9d9d9; }
+
+        /* ================= 用户状态开关 ================= */
+        .switch-btn {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 22px;
+            background-color: #ccc;
+            border-radius: 11px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            vertical-align: middle;
+        }
+
+        .switch-btn::after {
+            content: '';
+            position: absolute;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background-color: white;
+            top: 2px;
+            left: 2px;
+            transition: left 0.2s;
+        }
+
+        .switch-btn.active {
+            background-color: var(--success-color);
+        }
+
+        .switch-btn.active::after {
+            left: 24px;
+        }
+
+        /* ================= 4.4 统计看板图表 ================= */
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 6px;
+            border: 1px solid #e5e7eb;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .stat-info h3 {
+            font-size: 24px;
+            font-weight: bold;
+            color: #111827;
+            margin-top: 5px;
+        }
+
+        .stat-info p {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .stat-icon {
+            font-size: 28px;
+            color: rgba(24, 144, 255, 0.2);
+            background: #e6f7ff;
+            width: 50px;
+            height: 50px;
+            border-radius: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .chart-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .mock-chart {
+            height: 220px;
+            border-bottom: 2px solid #ccc;
+            border-left: 2px solid #ccc;
+            margin: 20px 0 10px 10px;
+            position: relative;
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-around;
+            padding: 0 20px;
+        }
+
+        .mock-chart-bar {
+            width: 30px;
+            background: var(--primary-color);
+            position: relative;
+            border-radius: 3px 3px 0 0;
+            transition: height 0.5s;
+        }
+
+        .mock-chart-bar:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .mock-chart-bar::after {
+            content: attr(data-value);
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 11px;
+            font-weight: bold;
+            color: var(--text-main);
+        }
+
+        .mock-chart-bar-label {
+            position: absolute;
+            bottom: -22px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 11px;
+            color: var(--text-secondary);
+            white-space: nowrap;
+        }
+
+        .mock-svg-chart {
+            width: 100%;
+            height: 220px;
+        }
+
+        /* ================= 弹窗/抽屉 ================= */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 6px;
+            width: 500px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            overflow: hidden;
+            animation: modalFadeIn 0.2s ease-out;
+        }
+
+        @keyframes modalFadeIn {
+            from { transform: scale(0.95); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .modal-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .modal-close {
+            cursor: pointer;
+            border: none;
+            background: none;
+            font-size: 16px;
+            color: var(--text-secondary);
+        }
+
+        .modal-body {
+            padding: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .modal-footer {
+            padding: 12px 20px;
+            border-top: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            background: #fafafa;
+        }
+
+        .drawer-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            justify-content: flex-end;
+            z-index: 1500;
+        }
+
+        .drawer {
+            width: 480px;
+            background: white;
+            height: 100%;
+            box-shadow: -4px 0 12px rgba(0,0,0,0.15);
+            display: flex;
+            flex-direction: column;
+            animation: drawerSlideIn 0.25s ease-out;
+        }
+
+        @keyframes drawerSlideIn {
+            from { transform: translateX(100%); }
+            to { transform: translateX(0); }
+        }
+
+        .drawer-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .drawer-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .drawer-footer {
+            padding: 16px 20px;
+            border-top: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            background: #fafafa;
+        }
+
+        /* 工单流转步骤条 */
+        .workflow-steps {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 25px;
+            position: relative;
+        }
+
+        .workflow-steps::before {
+            content: '';
+            position: absolute;
+            height: 2px;
+            background: #e5e7eb;
+            left: 10%;
+            right: 10%;
+            top: 15px;
+            z-index: 1;
+        }
+
+        .wf-step {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            flex: 1;
+        }
+
+        .wf-node {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: white;
+            border: 2px solid #ccc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 8px auto;
+            font-weight: bold;
+            font-size: 13px;
+        }
+
+        .wf-step.active .wf-node {
+            border-color: var(--primary-color);
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .wf-step.completed .wf-node {
+            border-color: var(--success-color);
+            background: #f6ffed;
+            color: var(--success-color);
+        }
+
+        .wf-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .wf-step.active .wf-label {
+            color: var(--text-main);
+            font-weight: bold;
+        }
+
+        /* 协同评论区 */
+        .comments-section {
+            border-top: 1px solid #e5e7eb;
+            margin-top: 20px;
+            padding-top: 15px;
+        }
+
+        .comments-list {
+            list-style: none;
+            margin-bottom: 15px;
+        }
+
+        .comment-item {
+            margin-bottom: 12px;
+            padding: 8px 12px;
+            background: #f9fafb;
+            border-radius: 4px;
+        }
+
+        .comment-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+
+        .comment-meta span.author {
+            font-weight: bold;
+            color: var(--text-main);
+        }
+
+        .comment-content {
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ============================================= -->
+    <!--            4.2 登录页 (已隐藏极速扮演)         -->
+    <!-- ============================================= -->
+    <div id="login-screen">
+        <div class="login-card">
+            <div class="login-header">
+                <h2>IBMS 工控管理系统</h2>
+            </div>
+            
+            <form id="login-form" onsubmit="event.preventDefault(); handleLogin();">
+                <div class="form-group">
+                    <label>账号</label>
+                    <div class="input-icon-wrapper">
+                        <i class="fa fa-user"></i>
+                        <input type="text" id="username" class="form-control" placeholder="请输入用户名" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>密码</label>
+                    <div class="input-icon-wrapper">
+                        <i class="fa fa-lock"></i>
+                        <input type="password" id="password" class="form-control" placeholder="请输入密码" required>
+                    </div>
+                </div>
+                <button type="submit" class="login-btn">登录</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ============================================= -->
+    <!--                 主体框架布局                  -->
+    <!-- ============================================= -->
+    <div id="main-layout">
+        <!-- 顶部导航栏 -->
+        <header>
+            <div class="logo-area">
+                <i class="fa-solid fa-shield-halved"></i>
+                <span>RBAC 智能工单协同平台</span>
+            </div>
+            <div class="user-status">
+                <span style="font-size: 13px; color: #a0aec0;">当前用户: <strong id="current-user-name" style="color:#fff">--</strong></span>
+                <span class="role-badge" id="current-role-label">加载中...</span>
+                <button class="logout-btn" onclick="handleLogout()">
+                    <i class="fa-solid fa-right-from-bracket"></i> 退出登录
+                </button>
+            </div>
+        </header>
+
+        <!-- 侧边导航栏 -->
+        <aside>
+            <ul class="nav-menu" id="sidebar-menu">
+                <!-- 动态渲染菜单 -->
+            </ul>
+        </aside>
+
+        <!-- 主内容区 -->
+        <main>
+            <!-- ============================================= -->
+            <!--            4.3 用户管理模块 (系统管理员专用)  -->
+            <!-- ============================================= -->
+            <div id="page-users" class="page">
+                <div class="page-header">
+                    <h1>用户管理 <span style="font-size: 13px; font-weight: normal; color: #888;">(系统管理员专用权限)</span></h1>
+                    <button class="btn btn-primary" onclick="openUserModal()"><i class="fa fa-plus"></i> 新增系统用户</button>
+                </div>
+
+                <div class="filter-bar">
+                    <div class="filter-group">
+                        <label>检索用户：</label>
+                        <input type="text" class="form-control" placeholder="用户名/姓名" style="width: 180px; padding: 6px 12px;" id="search-user-keyword">
+                    </div>
+                    <div class="filter-group">
+                        <label>所属角色：</label>
+                        <select class="form-control" style="width: 120px; padding: 6px 12px;" id="search-user-role">
+                            <option value="">全部角色</option>
+                            <option value="ADMIN">系统管理员</option>
+                            <option value="LEADER">企业领导</option>
+                            <option value="CS">客服专员</option>
+                            <option value="INSPECTOR">现场巡检员</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-sm" onclick="filterUsers()"><i class="fa fa-search"></i> 检索</button>
+                    <button class="btn btn-sm" onclick="resetUserFilter()">重置</button>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="axure-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 80px;">ID</th>
+                                <th>登录账号</th>
+                                <th>姓名</th>
+                                <th>所属角色</th>
+                                <th>状态</th>
+                                <th style="width: 260px; text-align: center;">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="users-tbody">
+                            <!-- JS动态灌入数据 -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ============================================= -->
+            <!--          4.4 统计看板/数据报表 (领导专用)      -->
+            <!-- ============================================= -->
+            <div id="page-reports" class="page">
+                <div class="page-header">
+                    <h1>数据统计分析中心 <span style="font-size: 13px; font-weight: normal; color: #888;">(决策层专属视图)</span></h1>
+                    <button class="btn btn-success" onclick="mockExport()"><i class="fa-solid fa-file-export"></i> 一键导出 (Excel/PDF)</button>
+                </div>
+
+                <!-- 数据指标阵列 -->
+                <div class="stat-grid">
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <p>整体设备在线率</p>
+                            <h3>98.7%</h3>
+                        </div>
+                        <div class="stat-icon" style="background:#f6ffed; color:#52c41a;"><i class="fa-solid fa-microchip"></i></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <p>本月告警恢复率</p>
+                            <h3>94.2%</h3>
+                        </div>
+                        <div class="stat-icon"><i class="fa-solid fa-circle-exclamation"></i></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <p>平均工单流转耗时</p>
+                            <h3>1.8 小时</h3>
+                        </div>
+                        <div class="stat-icon" style="background:#fff7e6; color:#fa8c16;"><i class="fa-solid fa-clock"></i></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <p>本周新增派发工单</p>
+                            <h3>142 件</h3>
+                        </div>
+                        <div class="stat-icon" style="background:#f9f0ff; color:#722ed1;"><i class="fa-solid fa-paste"></i></div>
+                    </div>
+                </div>
+
+                <!-- 报表图表拟真 -->
+                <div class="chart-row">
+                    <div class="card">
+                        <h3 style="font-size:15px; margin-bottom: 15px;"><i class="fa-solid fa-chart-column"></i> 各状态工单分布与处理效率报表</h3>
+                        <div class="mock-chart">
+                            <div class="mock-chart-bar" style="height: 30%;" data-value="12">
+                                <span class="mock-chart-bar-label">未处理</span>
+                            </div>
+                            <div class="mock-chart-bar" style="height: 55%; background: var(--warning-color);" data-value="26">
+                                <span class="mock-chart-bar-label">处理中</span>
+                            </div>
+                            <div class="mock-chart-bar" style="height: 85%; background: var(--success-color);" data-value="58">
+                                <span class="mock-chart-bar-label">已处理</span>
+                            </div>
+                            <div class="mock-chart-bar" style="height: 95%; background: #bfbfbf;" data-value="84">
+                                <span class="mock-chart-bar-label">已关闭</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h3 style="font-size:15px; margin-bottom: 15px;"><i class="fa-solid fa-chart-line"></i> 告警发生频次趋势分析 (按周/日)</h3>
+                        <div style="position: relative;">
+                            <svg class="mock-svg-chart" viewBox="0 0 400 200">
+                                <line x1="10" y1="40" x2="390" y2="40" stroke="#f0f0f0" />
+                                <line x1="10" y1="90" x2="390" y2="90" stroke="#f0f0f0" />
+                                <line x1="10" y1="140" x2="390" y2="140" stroke="#f0f0f0" />
+                                <line x1="10" y1="180" x2="390" y2="180" stroke="#ccc" stroke-width="2" />
+                                <polyline fill="none" stroke="#1890ff" stroke-width="3" points="20,150 80,130 140,40 200,90 260,30 320,110 380,50" />
+                                <circle cx="20" cy="150" r="4" fill="#1890ff" />
+                                <circle cx="80" cy="130" r="4" fill="#1890ff" />
+                                <circle cx="140" cy="40" r="4" fill="#1890ff" />
+                                <circle cx="200" cy="90" r="4" fill="#1890ff" />
+                                <circle cx="260" cy="30" r="4" fill="#1890ff" />
+                                <circle cx="320" cy="110" r="4" fill="#1890ff" />
+                                <circle cx="380" cy="50" r="4" fill="#1890ff" />
+                            </svg>
+                            <div style="display:flex; justify-content:space-between; padding:0 10px; font-size:11px; color:#888;">
+                                <span>周一</span><span>周二</span><span>周三</span><span>周四</span><span>周五</span><span>周六</span><span>周日</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============================================= -->
+            <!--             4.5 告警事件列表页面               -->
+            <!-- ============================================= -->
+            <div id="page-alerts" class="page">
+                <div class="page-header">
+                    <h1>实时告警大盘</h1>
+                </div>
+
+                <div class="filter-bar">
+                    <div class="filter-group">
+                        <label>告警状态：</label>
+                        <select class="form-control" style="width: 130px; padding: 6px 12px;" id="filter-alert-status" onchange="filterAlerts()">
+                            <option value="ACTIVE">正在告警 (未恢复)</option>
+                            <option value="RESOLVED">已结束 (历史告警)</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>告警等级：</label>
+                        <select class="form-control" style="width: 100px; padding: 6px 12px;" id="filter-alert-level" onchange="filterAlerts()">
+                            <option value="">全部</option>
+                            <option value="CRITICAL">紧急</option>
+                            <option value="WARNING">次要</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="axure-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 100px;">告警编码</th>
+                                <th>告警源/规则名</th>
+                                <th>级别</th>
+                                <th>首次触发时间</th>
+                                <th>当前状态</th>
+                                <th>消警/结束时间</th>
+                                <th style="width: 180px; text-align: center;">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="alerts-tbody">
+                            <!-- JS渲染动态告警 -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ============================================= -->
+            <!--                 4.6 工单中心                  -->
+            <!-- ============================================= -->
+            <div id="page-tickets" class="page">
+                <div class="page-header">
+                    <h1 id="tickets-page-title">所有协同工单列表</h1>
+                    <button class="btn btn-primary" id="btn-create-ticket" onclick="openTicketModal()"><i class="fa fa-plus"></i> 创建派发新工单</button>
+                </div>
+
+                <div class="filter-bar">
+                    <div class="filter-group">
+                        <label>工单编号/名称：</label>
+                        <input type="text" class="form-control" placeholder="编号或标题" style="width: 160px; padding: 6px 12px;" id="search-ticket-keyword">
+                    </div>
+                    <div class="filter-group">
+                        <label>流程状态：</label>
+                        <select class="form-control" style="width: 110px; padding: 6px 12px;" id="search-ticket-status">
+                            <option value="">全部状态</option>
+                            <option value="TODO">未处理</option>
+                            <option value="DOING">处理中</option>
+                            <option value="DONE">已处理</option>
+                            <option value="CLOSED">已关闭</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-sm" onclick="filterTickets()"><i class="fa fa-search"></i> 过滤筛选</button>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="axure-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 90px;">工单编号</th>
+                                <th>工单标题</th>
+                                <th>分派对象</th>
+                                <th>优先级</th>
+                                <th>流程状态</th>
+                                <th>更新时间</th>
+                                <th style="width: 220px; text-align: center;">交互指令</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tickets-tbody">
+                            <!-- 工单数据绑定 -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- ============================================= -->
+    <!--            【模态框】新增/编辑用户             -->
+    <!-- ============================================= -->
+    <div class="modal-overlay" id="user-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <span id="user-modal-title">新增系统用户</span>
+                <button class="modal-close" onclick="closeUserModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="user-form">
+                    <input type="hidden" id="edit-user-idx">
+                    <div class="form-group" style="margin-bottom:15px;">
+                        <label>登录用户名 *</label>
+                        <input type="text" id="modal-user-username" class="form-control" style="padding-left:12px;" required placeholder="例如：zhangzx">
+                    </div>
+                    <div class="form-group" style="margin-bottom:15px;">
+                        <label>真实姓名 *</label>
+                        <input type="text" id="modal-user-realname" class="form-control" style="padding-left:12px;" required placeholder="如：张折喜">
+                    </div>
+                    <div class="form-group" style="margin-bottom:15px;">
+                        <label>登录登录密码 *</label>
+                        <input type="password" id="modal-user-password" class="form-control" style="padding-left:12px;" required placeholder="不少于6位">
+                    </div>
+                    <div class="form-group" style="margin-bottom:15px;">
+                        <label>RBAC 角色指派 *</label>
+                        <select id="modal-user-role" class="form-control" style="padding-left:12px;" required>
+                            <option value="ADMIN">系统管理员 (ADMIN)</option>
+                            <option value="LEADER">企业领导 (LEADER)</option>
+                            <option value="CS">客服专员 (CS)</option>
+                            <option value="INSPECTOR">现场巡检员 (INSPECTOR)</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-default" onclick="closeUserModal()">取消关闭</button>
+                <button class="btn btn-primary" onclick="saveUserSubmit()">确认保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================= -->
+    <!--            【模态框】创建工单                 -->
+    <!-- ============================================= -->
+    <div class="modal-overlay" id="ticket-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <span>新建派发工单</span>
+                <button class="modal-close" onclick="closeTicketModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="ticket-form">
+                    <div class="form-group" style="margin-bottom:15px;">
+                        <label>工单标题 *</label>
+                        <input type="text" id="t-title" class="form-control" style="padding-left:12px;" placeholder="例如：2号楼发电机组异常温升处置" required>
+                    </div>
+                    <div class="form-group" style="margin-bottom:15px;">
+                        <label>优先级分级</label>
+                        <select id="t-priority" class="form-control" style="padding-left:12px;">
+                            <option value="HIGH">高 (CRITICAL)</option>
+                            <option value="NORMAL" selected>中 (NORMAL)</option>
+                            <option value="LOW">低 (LOW)</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin-bottom:15px;">
+                        <label>指定现场巡检员 (工单指派功能) *</label>
+                        <select id="t-assignee" class="form-control" style="padding-left:12px;" required>
+                            <!-- 动态筛选加载现场巡检角色列表 -->
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin-bottom:15px;">
+                        <label>具体描述与运维建议</label>
+                        <textarea id="t-desc" class="form-control" style="padding-left:12px; height: 80px;" placeholder="录入点位信息和异常代码..."></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-default" onclick="closeTicketModal()">取消</button>
+                <button class="btn btn-primary" onclick="createTicketSubmit()">立即派发</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================= -->
+    <!--           【抽屉】工单详情与多方评论流转        -->
+    <!-- ============================================= -->
+    <div class="drawer-overlay" id="ticket-detail-drawer">
+        <div class="drawer">
+            <div class="drawer-header">
+                <span>工单全流程追踪</span>
+                <button class="modal-close" onclick="closeDetailDrawer()">&times;</button>
+            </div>
+            <div class="drawer-body">
+                <!-- 流程图 -->
+                <div class="workflow-steps">
+                    <div class="wf-step" id="wf-step-todo">
+                        <div class="wf-node">1</div>
+                        <div class="wf-label">未处理</div>
+                    </div>
+                    <div class="wf-step" id="wf-step-doing">
+                        <div class="wf-node">2</div>
+                        <div class="wf-label">处理中</div>
+                    </div>
+                    <div class="wf-step" id="wf-step-done">
+                        <div class="wf-node">3</div>
+                        <div class="wf-label">已处理</div>
+                    </div>
+                    <div class="wf-step" id="wf-step-closed">
+                        <div class="wf-node">4</div>
+                        <div class="wf-label">已关闭</div>
+                    </div>
+                </div>
+
+                <!-- 核心详情 -->
+                <h3 id="drawer-ticket-title" style="margin-bottom: 12px; font-size:16px;">--</h3>
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 6px; margin-bottom: 15px;">
+                    <p style="margin-bottom: 8px;"><strong>工单编号：</strong> <span id="drawer-ticket-id">--</span></p>
+                    <p style="margin-bottom: 8px;"><strong>负责巡检：</strong> <span id="drawer-ticket-assignee">--</span></p>
+                    <p style="margin-bottom: 8px;"><strong>优先级：</strong> <span id="drawer-ticket-priority">--</span></p>
+                    <p style="margin-bottom: 8px;"><strong>工单说明：</strong> <span id="drawer-ticket-desc" style="color:#555;">--</span></p>
+                </div>
+
+                <!-- 状态流转操作台 -->
+                <div id="drawer-workflow-actions" style="margin-bottom: 20px;">
+                    <h4 style="font-size:13px; margin-bottom: 8px;"><i class="fa-solid fa-gears"></i> 状态机控制面板</h4>
+                    <div class="btn-group" style="display:flex; gap: 8px;" id="action-buttons-container">
+                        <!-- 动态渲染控制动作 -->
+                    </div>
+                </div>
+
+                <!-- 协同评论区 -->
+                <div class="comments-section">
+                    <h4 style="font-size: 14px; margin-bottom: 12px;"><i class="fa-solid fa-comments"></i> 协同工作流实时视窗评论</h4>
+                    <ul class="comments-list" id="comments-list-box">
+                        <!-- 评论流 -->
+                    </ul>
+                    <div class="comment-input-area">
+                        <textarea class="form-control" style="padding:8px 12px; height: 60px; margin-bottom: 8px;" id="new-comment-text" placeholder="发表评论，反馈现场处置进度..."></textarea>
+                        <button class="btn btn-primary btn-sm" onclick="submitComment()"><i class="fa fa-paper-plane"></i> 提交日志评论</button>
+                    </div>
+                </div>
+            </div>
+            <div class="drawer-footer">
+                <button class="btn btn-default" onclick="closeDetailDrawer()">关闭视窗</button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ============================================= -->
+    <!--                 核心业务逻辑脚本               -->
+    <!-- ============================================= -->
+    <script>
+        // ================= 模拟数据库数据 (保留基本属性) =================
+        const DEFAULT_ALERTS = [
+            { id: 'AL-0892', name: '3号楼高压变频器温度异常临界', level: 'CRITICAL', triggerTime: '2026-07-17 15:30', status: 'ACTIVE', clearTime: '-' },
+            { id: 'AL-0893', name: '弱电房漏水感应器异常报警', level: 'WARNING', triggerTime: '2026-07-17 16:15', status: 'ACTIVE', clearTime: '-' },
+            { id: 'AL-0850', name: '1号电梯井道通讯异常', level: 'WARNING', triggerTime: '2026-07-16 09:20', status: 'RESOLVED', clearTime: '2026-07-16 11:30' },
+            { id: 'AL-0810', name: '消防水箱超低水位报警', level: 'CRITICAL', triggerTime: '2026-07-15 08:00', status: 'RESOLVED', clearTime: '2026-07-15 08:45' }
+        ];
+
+        const DEFAULT_TICKETS = [
+            { 
+                id: 'TK-1001', 
+                title: '3号楼变频器现场排查与冷媒追加', 
+                assigneeId: 1004, 
+                assigneeName: '陈巡检-海淀区', 
+                priority: 'HIGH', 
+                status: 'TODO', 
+                updateTime: '2026-07-17 15:35',
+                desc: '接系统告警，发热量疑似严重，请立刻进行现场测温排查。',
+                comments: [
+                    { author: '系统监控网关', roleName: '系统', time: '15:35', content: '由于触发紧急级告警[AL-0892] 关联自动生成派发该工单。' }
+                ]
+            },
+            { 
+                id: 'TK-1002', 
+                title: '大堂中央空调滤网周期性清洗', 
+                assigneeId: 1005, 
+                assigneeName: '周巡检-朝阳区', 
+                priority: 'LOW', 
+                status: 'DOING', 
+                updateTime: '2026-07-17 10:00',
+                desc: '定期除尘滤尘，保障进风口通畅。',
+                comments: [
+                    { author: '李丽 (客服专员)', roleName: '客服', time: '10:00', content: '今日常态化维护，请现场拍照反馈。' }
+                ]
+            }
+        ];
+
+        // ================= 数据初始化 =================
+        let dbUsers = JSON.parse(localStorage.getItem('rbac_users')) || DEFAULT_USERS;
+        let dbAlerts = JSON.parse(localStorage.getItem('rbac_alerts')) || DEFAULT_ALERTS;
+        let dbTickets = JSON.parse(localStorage.getItem('rbac_tickets')) || DEFAULT_TICKETS;
+        let currentUser = null; 
+        let activeMenu = ''; 
+        let currentEditingTicketIdx = null;
+
+        // ================= RBAC 权限路由定义 =================
+        const ROLE_MENUS = {
+            ADMIN: [
+                { id: 'users', label: '用户管理', icon: 'fa-user-gear' },
+                { id: 'alerts', label: '实时告警大盘', icon: 'fa-triangle-exclamation' },
+                { id: 'tickets', label: '协同工单中心', icon: 'fa-receipt' }
+            ],
+            LEADER: [
+                { id: 'reports', label: '统计看板/报表', icon: 'fa-chart-pie' },
+                { id: 'alerts', label: '实时告警大盘', icon: 'fa-triangle-exclamation' },
+                { id: 'tickets', label: '协同工单中心', icon: 'fa-receipt' }
+            ],
+            CS: [
+                { id: 'alerts', label: '实时告警大盘', icon: 'fa-triangle-exclamation' },
+                { id: 'tickets', label: '工单派发与调度', icon: 'fa-receipt' }
+            ],
+            INSPECTOR: [
+                { id: 'tickets', label: '我的工单(指派)', icon: 'fa-clipboard-list' }
+            ]
+        };
+
+        const ROLE_MAP = {
+            'ADMIN': '系统管理员',
+            'LEADER': '企业领导',
+            'CS': '客服专员',
+            'INSPECTOR': '现场巡检员'
+        };
+
+        // 数据保存到 LocalStorage
+        function persist() {
+            localStorage.setItem('rbac_users', JSON.stringify(dbUsers));
+            localStorage.setItem('rbac_alerts', JSON.stringify(dbAlerts));
+            localStorage.setItem('rbac_tickets', JSON.stringify(dbTickets));
+        }
+
+        // ================= 登录验证 =================
+        function handleLogin() {
+            const u = document.getElementById('username').value.trim();
+            const p = document.getElementById('password').value.trim();
+
+            const found = dbUsers.find(user => user.username === u && user.password === p);
+            if (!found) {
+                alert('登录失败：账号或密码输入错误！');
+                return;
+            }
+            if (!found.active) {
+                alert('登录失败：该账号已被管理员禁用！');
+                return;
+            }
+
+            currentUser = found;
+            initSystem();
+        }
+
+        function handleLogout() {
+            currentUser = null;
+            document.getElementById('username').value = '';
+            document.getElementById('password').value = '';
+            document.getElementById('main-layout').style.display = 'none';
+            document.getElementById('login-screen').style.display = 'flex';
+        }
+
+        // ================= 系统视图渲染 =================
+        function initSystem() {
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('main-layout').style.display = 'grid';
+
+            document.getElementById('current-user-name').innerText = currentUser.realname;
+            document.getElementById('current-role-label').innerText = ROLE_MAP[currentUser.role];
+
+            // 依据权限渲染菜单栏
+            const menus = ROLE_MENUS[currentUser.role];
+            const menuContainer = document.getElementById('sidebar-menu');
+            menuContainer.innerHTML = '';
+
+            menus.forEach((m, idx) => {
+                const li = document.createElement('li');
+                li.className = `nav-item ${idx === 0 ? 'active' : ''}`;
+                li.setAttribute('onclick', `switchPage('${m.id}')`);
+                li.innerHTML = `<i class="fa ${m.icon}"></i> <span>${m.label}</span>`;
+                menuContainer.appendChild(li);
+            });
+
+            setupButtonPermissions();
+            switchPage(menus[0].id);
+        }
+
+        function setupButtonPermissions() {
+            const btnCreate = document.getElementById('btn-create-ticket');
+            // 细粒度权限：仅管理员与客服有权派发工单
+            if (currentUser.role === 'ADMIN' || currentUser.role === 'CS') {
+                btnCreate.style.display = 'inline-flex';
+            } else {
+                btnCreate.style.display = 'none';
+            }
+        }
+
+        function switchPage(pageId) {
+            activeMenu = pageId;
+            
+            const items = document.querySelectorAll('.nav-item');
+            const menus = ROLE_MENUS[currentUser.role];
+            const menuIndex = menus.findIndex(m => m.id === pageId);
+            items.forEach((item, idx) => {
+                if (idx === menuIndex) {
+                    item.classList.add('active');
+                } else {
+                    item.classList.remove('active');
+                }
+            });
+
+            const pages = document.querySelectorAll('.page');
+            pages.forEach(p => p.classList.remove('active'));
+
+            const targetPage = document.getElementById(`page-${pageId}`);
+            if (targetPage) {
+                targetPage.classList.add('active');
+                
+                if (pageId === 'users') {
+                    renderUsers();
+                } else if (pageId === 'alerts') {
+                    renderAlerts();
+                } else if (pageId === 'tickets') {
+                    renderTickets();
+                }
+            }
+        }
+
+        // ================= 4.3 用户管理 =================
+        function renderUsers() {
+            const tbody = document.getElementById('users-tbody');
+            tbody.innerHTML = '';
+            
+            dbUsers.forEach((u, index) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${u.id}</td>
+                    <td><strong>${u.username}</strong></td>
+                    <td>${u.realname}</td>
+                    <td><span class="badge badge-info">${ROLE_MAP[u.role]}</span></td>
+                    <td>
+                        <div class="switch-btn ${u.active ? 'active' : ''}" onclick="toggleUserStatus(${index})"></div>
+                    </td>
+                    <td style="text-align:center;">
+                        <button class="btn btn-sm" onclick="openUserModal(${index})"><i class="fa fa-edit"></i> 编辑</button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteUser(${index})" ${u.username === 'admin' ? 'disabled style="opacity:0.5"' : ''}><i class="fa fa-trash"></i> 删除</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function filterUsers() {
+            const keyword = document.getElementById('search-user-keyword').value.trim().toLowerCase();
+            const role = document.getElementById('search-user-role').value;
+            const tbody = document.getElementById('users-tbody');
+            tbody.innerHTML = '';
+
+            const list = dbUsers.filter(u => {
+                const matchK = !keyword || u.username.toLowerCase().includes(keyword) || u.realname.toLowerCase().includes(keyword);
+                const matchR = !role || u.role === role;
+                return matchK && matchR;
+            });
+
+            list.forEach((u, index) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${u.id}</td>
+                    <td><strong>${u.username}</strong></td>
+                    <td>${u.realname}</td>
+                    <td><span class="badge badge-info">${ROLE_MAP[u.role]}</span></td>
+                    <td>
+                        <div class="switch-btn ${u.active ? 'active' : ''}" onclick="toggleUserStatus(${index})"></div>
+                    </td>
+                    <td style="text-align:center;">
+                        <button class="btn btn-sm" onclick="openUserModal(${index})"><i class="fa fa-edit"></i> 编辑</button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteUser(${index})" ${u.username === 'admin' ? 'disabled style="opacity:0.5"' : ''}><i class="fa fa-trash"></i> 删除</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function resetUserFilter() {
+            document.getElementById('search-user-keyword').value = '';
+            document.getElementById('search-user-role').value = '';
+            renderUsers();
+        }
+
+        function toggleUserStatus(idx) {
+            if (dbUsers[idx].username === 'admin') {
+                alert('超级管理员账号不可禁用！');
+                return;
+            }
+            dbUsers[idx].active = !dbUsers[idx].active;
+            persist();
+            renderUsers();
+        }
+
+        function deleteUser(idx) {
+            if (confirm(`确定彻底移除该系统账号 [${dbUsers[idx].realname}] 吗？`)) {
+                dbUsers.splice(idx, 1);
+                persist();
+                renderUsers();
+            }
+        }
+
+        function openUserModal(idx = null) {
+            const modal = document.getElementById('user-modal');
+            modal.style.display = 'flex';
+            if (idx !== null) {
+                document.getElementById('user-modal-title').innerText = '编辑用户信息';
+                document.getElementById('edit-user-idx').value = idx;
+                document.getElementById('modal-user-username').value = dbUsers[idx].username;
+                document.getElementById('modal-user-username').disabled = true;
+                document.getElementById('modal-user-realname').value = dbUsers[idx].realname;
+                document.getElementById('modal-user-password').value = dbUsers[idx].password;
+                document.getElementById('modal-user-role').value = dbUsers[idx].role;
+            } else {
+                document.getElementById('user-modal-title').innerText = '新增系统用户';
+                document.getElementById('edit-user-idx').value = '';
+                document.getElementById('modal-user-username').value = '';
+                document.getElementById('modal-user-username').disabled = false;
+                document.getElementById('modal-user-realname').value = '';
+                document.getElementById('modal-user-password').value = '';
+                document.getElementById('modal-user-role').value = 'INSPECTOR';
+            }
+        }
+
+        function closeUserModal() {
+            document.getElementById('user-modal').style.display = 'none';
+        }
+
+        function saveUserSubmit() {
+            const idx = document.getElementById('edit-user-idx').value;
+            const u = document.getElementById('modal-user-username').value.trim();
+            const r = document.getElementById('modal-user-realname').value.trim();
+            const p = document.getElementById('modal-user-password').value.trim();
+            const role = document.getElementById('modal-user-role').value;
+
+            if (!u || !r || !p) {
+                alert('请填写完整带*必填字段！');
+                return;
+            }
+
+            if (idx === '') {
+                if (dbUsers.some(user => user.username === u)) {
+                    alert('该用户名已存在，请换一个名称！');
+                    return;
+                }
+                const newId = dbUsers.length > 0 ? dbUsers[dbUsers.length - 1].id + 1 : 1001;
+                dbUsers.push({ id: newId, username: u, realname: r, role: role, active: true, password: p });
+            } else {
+                const targetIdx = parseInt(idx);
+                dbUsers[targetIdx].realname = r;
+                dbUsers[targetIdx].password = p;
+                dbUsers[targetIdx].role = role;
+            }
+
+            persist();
+            closeUserModal();
+            renderUsers();
+        }
+
+        // ================= 4.4 数据统计报表 =================
+        function mockExport() {
+            alert('⚙️ 原型组件调用提示：\n系统已动态生成当前最新的 [工单处理效率分析图表.xlsx] 和 [设备在线率监控周报.pdf] 导出任务！');
+        }
+
+        // ================= 4.5 实时告警大盘 =================
+        function renderAlerts() {
+            const tbody = document.getElementById('alerts-tbody');
+            tbody.innerHTML = '';
+            
+            const filterStat = document.getElementById('filter-alert-status').value;
+            const filterLv = document.getElementById('filter-alert-level').value;
+
+            const list = dbAlerts.filter(a => {
+                const matchS = a.status === filterStat;
+                const matchL = !filterLv || a.level === filterLv;
+                return matchS && matchL;
+            });
+
+            list.forEach((a) => {
+                const tr = document.createElement('tr');
+                const levelBadge = a.level === 'CRITICAL' ? '<span class="badge badge-danger">紧急 (CRITICAL)</span>' : '<span class="badge badge-warning">次要 (WARNING)</span>';
+                const statusBadge = a.status === 'ACTIVE' ? '<span class="badge badge-danger">正在告警</span>' : '<span class="badge badge-default">已恢复</span>';
+                
+                let actionBtn = '-';
+                if (a.status === 'ACTIVE') {
+                    if (currentUser.role === 'ADMIN' || currentUser.role === 'CS') {
+                        actionBtn = `<button class="btn btn-sm btn-success" onclick="acknowledgeAlert('${a.id}')"><i class="fa fa-check"></i> 确认并消除告警</button>`;
+                    } else {
+                        actionBtn = `<span style="font-size:11px; color:#aaa;"><i class="fa fa-lock"></i> 仅限管理/客服</span>`;
+                    }
+                }
+
+                tr.innerHTML = `
+                    <td><code>${a.id}</code></td>
+                    <td><strong>${a.name}</strong></td>
+                    <td>${levelBadge}</td>
+                    <td>${a.triggerTime}</td>
+                    <td>${statusBadge}</td>
+                    <td>${a.clearTime}</td>
+                    <td style="text-align:center;">${actionBtn}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function filterAlerts() {
+            renderAlerts();
+        }
+
+        function acknowledgeAlert(alertId) {
+            const foundIdx = dbAlerts.findIndex(a => a.id === alertId);
+            if (foundIdx !== -1) {
+                dbAlerts[foundIdx].status = 'RESOLVED';
+                dbAlerts[foundIdx].clearTime = new Date().toISOString().replace('T', ' ').slice(0, 16);
+                
+                if (confirm('确认消警成功！是否需要针对此项告警，同步触发派发一张现场巡检工单？')) {
+                    persist();
+                    switchPage('tickets');
+                    openTicketModal(`针对告警 [${dbAlerts[foundIdx].name}] 的闭环处置工单`);
+                } else {
+                    persist();
+                    renderAlerts();
+                }
+            }
+        }
+
+        // ================= 4.6 协同工单中心 =================
+        function renderTickets() {
+            const isInspector = currentUser.role === 'INSPECTOR';
+            const pageTitle = isInspector ? '我的派发工单 (现场巡检专属)' : '所有协同工单列表';
+            document.getElementById('tickets-page-title').innerText = pageTitle;
+
+            const tbody = document.getElementById('tickets-tbody');
+            tbody.innerHTML = '';
+
+            const keyword = document.getElementById('search-ticket-keyword').value.trim().toLowerCase();
+            const searchStatus = document.getElementById('search-ticket-status').value;
+
+            let list = dbTickets;
+            if (isInspector) {
+                list = dbTickets.filter(t => t.assigneeId === currentUser.id);
+            }
+
+            list = list.filter(t => {
+                const matchK = !keyword || t.title.toLowerCase().includes(keyword) || t.id.toLowerCase().includes(keyword);
+                const matchS = !searchStatus || t.status === searchStatus;
+                return matchK && matchS;
+            });
+
+            list.forEach((t) => {
+                const tr = document.createElement('tr');
+                
+                let pBadge = '<span class="badge badge-default">低</span>';
+                if (t.priority === 'HIGH') pBadge = '<span class="badge badge-danger">高</span>';
+                if (t.priority === 'NORMAL') pBadge = '<span class="badge badge-warning">中</span>';
+
+                let sBadge = '';
+                if (t.status === 'TODO') sBadge = '<span class="badge badge-danger">未处理</span>';
+                if (t.status === 'DOING') sBadge = '<span class="badge badge-warning">处理中</span>';
+                if (t.status === 'DONE') sBadge = '<span class="badge badge-success">已处理</span>';
+                if (t.status === 'CLOSED') sBadge = '<span class="badge badge-default">已关闭</span>';
+
+                tr.innerHTML = `
+                    <td><code>${t.id}</code></td>
+                    <td><strong>${t.title}</strong></td>
+                    <td><i class="fa fa-user-circle"></i> ${t.assigneeName}</td>
+                    <td>${pBadge}</td>
+                    <td>${sBadge}</td>
+                    <td><span style="font-size:11px; color:#888;">${t.updateTime}</span></td>
+                    <td style="text-align:center;">
+                        <button class="btn btn-sm btn-primary" onclick="openDetailDrawer('${t.id}')"><i class="fa fa-eye"></i> 详情 / 协作评论</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function filterTickets() {
+            renderTickets();
+        }
+
+        function openTicketModal(prefillTitle = '') {
+            const select = document.getElementById('t-assignee');
+            select.innerHTML = '';
+            
+            const inspectors = dbUsers.filter(u => u.role === 'INSPECTOR' && u.active);
+            inspectors.forEach(ins => {
+                select.innerHTML += `<option value="${ins.id}">${ins.realname}</option>`;
+            });
+
+            document.getElementById('t-title').value = prefillTitle;
+            document.getElementById('t-desc').value = prefillTitle ? `本单通过告警源触发快速关联。` : '';
+            document.getElementById('ticket-modal').style.display = 'flex';
+        }
+
+        function closeTicketModal() {
+            document.getElementById('ticket-modal').style.display = 'none';
+        }
+
+        function createTicketSubmit() {
+            const title = document.getElementById('t-title').value.trim();
+            const priority = document.getElementById('t-priority').value;
+            const assigneeId = parseInt(document.getElementById('t-assignee').value);
+            const desc = document.getElementById('t-desc').value.trim();
+
+            if (!title || !assigneeId) {
+                alert('请填写完整表单！');
+                return;
+            }
+
+            const assigneeUser = dbUsers.find(u => u.id === assigneeId);
+            const newId = `TK-${dbTickets.length > 0 ? parseInt(dbTickets[dbTickets.length - 1].id.split('-')[1]) + 1 : 1001}`;
+            
+            const newTicket = {
+                id: newId,
+                title: title,
+                assigneeId: assigneeId,
+                assigneeName: assigneeUser.realname,
+                priority: priority,
+                status: 'TODO',
+                updateTime: new Date().toISOString().replace('T', ' ').slice(0, 16),
+                desc: desc || '暂无描述',
+                comments: [
+                    { author: currentUser.realname, roleName: ROLE_MAP[currentUser.role], time: '刚刚', content: '创建工单并指派。' }
+                ]
+            };
+
+            dbTickets.push(newTicket);
+            persist();
+            closeTicketModal();
+            renderTickets();
+        }
+
+        // ================= 工单流转与协作评论流 =================
+        function openDetailDrawer(ticketId) {
+            currentEditingTicketIdx = dbTickets.findIndex(t => t.id === ticketId);
+            const t = dbTickets[currentEditingTicketIdx];
+
+            document.getElementById('drawer-ticket-title').innerText = t.title;
+            document.getElementById('drawer-ticket-id').innerText = t.id;
+            document.getElementById('drawer-ticket-assignee').innerText = t.assigneeName;
+            document.getElementById('drawer-ticket-priority').innerText = t.priority === 'HIGH' ? '高 (CRITICAL)' : (t.priority === 'NORMAL' ? '中' : '低');
+            document.getElementById('drawer-ticket-desc').innerText = t.desc;
+
+            // 重置并配置进度步骤样式
+            document.querySelectorAll('.wf-step').forEach(step => step.className = 'wf-step');
+            
+            const statusOrder = ['TODO', 'DOING', 'DONE', 'CLOSED'];
+            const activeStepIdx = statusOrder.indexOf(t.status);
+            
+            for(let i=0; i<4; i++) {
+                const el = document.getElementById(`wf-step-${statusOrder[i].toLowerCase()}`);
+                if (i < activeStepIdx) {
+                    el.classList.add('completed');
+                } else if (i === activeStepIdx) {
+                    el.classList.add('active');
+                }
+            }
+
+            renderWorkflowActions(t);
+            renderComments(t);
+
+            document.getElementById('ticket-detail-drawer').style.display = 'flex';
+        }
+
+        function closeDetailDrawer() {
+            document.getElementById('ticket-detail-drawer').style.display = 'none';
+        }
+
+        function renderWorkflowActions(ticket) {
+            const container = document.getElementById('action-buttons-container');
+            container.innerHTML = '';
+
+            const r = currentUser.role;
+            const s = ticket.status;
+
+            let actionsHtml = '';
+
+            if (s === 'TODO') {
+                if (r === 'ADMIN' || (r === 'INSPECTOR' && ticket.assigneeId === currentUser.id)) {
+                    actionsHtml += `<button class="btn btn-success btn-sm" onclick="changeTicketStatus('DOING')"><i class="fa fa-play"></i> 确认接单并处理</button>`;
+                } else {
+                    actionsHtml += `<span style="color:#aaa; font-size:12px;">等待现场巡检员接单...</span>`;
+                }
+            } 
+            else if (s === 'DOING') {
+                if (r === 'ADMIN' || (r === 'INSPECTOR' && ticket.assigneeId === currentUser.id)) {
+                    actionsHtml += `<button class="btn btn-success btn-sm" onclick="changeTicketStatus('DONE')"><i class="fa fa-check"></i> 我已处置完毕 (申请关闭)</button>`;
+                } else {
+                    actionsHtml += `<span style="color:#aaa; font-size:12px;">巡检专员正在全力排除故障...</span>`;
+                }
+            } 
+            else if (s === 'DONE') {
+                if (r === 'ADMIN' || r === 'CS') {
+                    actionsHtml += `<button class="btn btn-primary btn-sm" onclick="changeTicketStatus('CLOSED')"><i class="fa-solid fa-folder-closed"></i> 验收合格-关闭工单</button>`;
+                    actionsHtml += `<button class="btn btn-danger btn-sm" onclick="changeTicketStatus('DOING', true)"><i class="fa-solid fa-rotate-left"></i> 验收不合格-退回重做</button>`;
+                } else {
+                    actionsHtml += `<span style="color:#faad14; font-size:12px;"><i class="fa-solid fa-hourglass-half"></i> 已完成现场处置，等待客服代表最终闭环验收...</span>`;
+                }
+            } 
+            else if (s === 'CLOSED') {
+                actionsHtml += `<span style="color:#52c41a; font-size:12px;"><i class="fa-solid fa-circle-check"></i> 该工单已安全完成全部闭环流转。</span>`;
+            }
+
+            container.innerHTML = actionsHtml;
+        }
+
+        function changeTicketStatus(newStatus, isReject = false) {
+            const t = dbTickets[currentEditingTicketIdx];
+            const oldStatus = t.status;
+            t.status = newStatus;
+            t.updateTime = new Date().toISOString().replace('T', ' ').slice(0, 16);
+
+            let statusLogText = '';
+            if (isReject) {
+                statusLogText = `❌ 验收不合格，工单被重新退回至 [处理中] 状态。`;
+            } else {
+                const statusNameMap = { 'TODO':'未处理', 'DOING':'处理中', 'DONE':'已处理', 'CLOSED':'已关闭' };
+                statusLogText = `🔄 工单状态从 [${statusNameMap[oldStatus]}] 流转至 [${statusNameMap[newStatus]}]。`;
+            }
+
+            t.comments.push({
+                author: currentUser.realname,
+                roleName: ROLE_MAP[currentUser.role],
+                time: new Date().toLocaleTimeString().slice(0, 5),
+                content: statusLogText
+            });
+
+            persist();
+            openDetailDrawer(t.id);
+            renderTickets();
+        }
+
+        function renderComments(ticket) {
+            const box = document.getElementById('comments-list-box');
+            box.innerHTML = '';
+            
+            ticket.comments.forEach(c => {
+                const li = document.createElement('li');
+                li.className = 'comment-item';
+                li.innerHTML = `
+                    <div class="comment-meta">
+                        <span class="author">${c.author} (${c.roleName})</span>
+                        <span>${c.time}</span>
+                    </div>
+                    <div class="comment-content">${c.content}</div>
+                `;
+                box.appendChild(li);
+            });
+            box.scrollTop = box.scrollHeight;
+        }
+
+        function submitComment() {
+            const textEl = document.getElementById('new-comment-text');
+            const val = textEl.value.trim();
+            if (!val) return;
+
+            const t = dbTickets[currentEditingTicketIdx];
+            t.comments.push({
+                author: currentUser.realname,
+                roleName: ROLE_MAP[currentUser.role],
+                time: new Date().toLocaleTimeString().slice(0, 5),
+                content: val
+            });
+
+            persist();
+            textEl.value = '';
+            renderComments(t);
+        }
+    </script>
+</body>
+</html>
