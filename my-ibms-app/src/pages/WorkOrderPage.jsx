@@ -66,7 +66,7 @@ export default function WorkOrderPage() {
       status: newStatus,
       comments: [
         ...(drawerRecord.comments || []),
-        { author: '运维工程师', time: formatTimeNow(), content: logText },
+        { author: user.realname, time: formatTimeNow(), content: logText },
       ],
     };
     setData(data.map(item => item.key === drawerRecord.key ? updated : item));
@@ -81,7 +81,7 @@ export default function WorkOrderPage() {
       ...drawerRecord,
       comments: [
         ...(drawerRecord.comments || []),
-        { author: '运维工程师', time: formatTimeNow(), content: commentText.trim() },
+        { author: user.realname, time: formatTimeNow(), content: commentText.trim() },
       ],
     };
     setData(data.map(item => item.key === drawerRecord.key ? updated : item));
