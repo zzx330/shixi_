@@ -1,5 +1,5 @@
 import React from 'react';
-import { Layout, Menu } from 'antd';
+import { Layout, Menu, Button, Space, Tag } from 'antd';
 import {
   HomeOutlined,
   ApiOutlined,
@@ -7,26 +7,48 @@ import {
   SoundOutlined,
   FileTextOutlined,
   AlertOutlined,
+  LogoutOutlined,
+  UserOutlined,
+  BarChartOutlined,
+  TeamOutlined,
 } from '@ant-design/icons';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
+import { useAuth, ROLE_MENUS, ROLE_MAP } from '../services/auth';
 
 const { Header, Sider, Content } = Layout;
+
+// 图标映射
+const ICON_MAP = {
+  HomeOutlined: <HomeOutlined />,
+  ApiOutlined: <ApiOutlined />,
+  AimOutlined: <AimOutlined />,
+  SoundOutlined: <SoundOutlined />,
+  FileTextOutlined: <FileTextOutlined />,
+  AlertOutlined: <AlertOutlined />,
+  UserOutlined: <UserOutlined />,
+  BarChartOutlined: <BarChartOutlined />,
+  TeamOutlined: <TeamOutlined />,
+};
 
 export default function MainLayout() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { user, logout } = useAuth();
 
-  const menuItems = [
-    { key: '/', icon: <HomeOutlined />, label: '主页' },
-    { key: '/protocol', icon: <ApiOutlined />, label: '通信协议' },
-    { key: '/measure-point', icon: <AimOutlined />, label: '测点管理' },
-    { key: '/monitor', icon: <SoundOutlined />, label: '监听管理' },
-    { key: '/work-order', icon: <FileTextOutlined />, label: '工单管理' },
-    { key: '/alarm', icon: <AlertOutlined />, label: '告警管理' },
-  ];
+  // 根据角色获取菜单
+  const rawMenu = ROLE_MENUS[user.role] || ROLE_MENUS.ENGINEER;
+  const menuItems = rawMenu.map(m => ({
+    key: m.key,
+    icon: ICON_MAP[m.icon] || <HomeOutlined />,
+    label: m.label,
+  }));
 
-  // 根据路径匹配选中的菜单项
   const selectedKey = '/' + (location.pathname.split('/')[1] || '');
+
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+  };
 
   return (
     <Layout style={{ minHeight: '100vh' }}>
@@ -62,10 +84,24 @@ export default function MainLayout() {
             fontWeight: 500,
             display: 'flex',
             alignItems: 'center',
+            justifyContent: 'space-between',
             boxShadow: '0 1px 4px rgba(0,21,41,.08)',
           }}
         >
-          IBMS 智能建筑管理系统 · 工业控制平台
+          <span>IBMS 智能建筑管理系统 · 工业控制平台</span>
+          <Space>
+            <Tag color="blue" icon={<UserOutlined />}>
+              {user.realname} ({ROLE_MAP[user.role] || user.role})
+            </Tag>
+            <Button
+              type="text"
+              danger
+              icon={<LogoutOutlined />}
+              onClick={handleLogout}
+            >
+              退出登录
+            </Button>
+          </Space>
         </Header>
         <Content
           style={{

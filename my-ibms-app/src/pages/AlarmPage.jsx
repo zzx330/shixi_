@@ -115,8 +115,6 @@ function ActiveAlarmTab({ activeAlarms, setActiveAlarms, setEndedAlarms }) {
   const levelText = { 1: '一级', 2: '二级', 3: '三级', 4: '四级', 5: '五级' };
 
   const confirmAlarm = (record) => {
-    // 从活跃列表移除
-    setActiveAlarms(activeAlarms.filter((a) => a.key !== record.key));
     // 加入已结束列表
     const endedRecord = {
       ...record,
@@ -126,8 +124,41 @@ function ActiveAlarmTab({ activeAlarms, setActiveAlarms, setEndedAlarms }) {
       }).replace(/\//g, '-'),
     };
     delete endedRecord.status;
+
+    // 询问是否创建关联工单
+    Modal.confirm({
+      title: '告警已确认',
+      content: `告警「${record.ruleName}」已消除。是否需要针对此项告警创建一张工单进行闭环处置？`,
+      okText: '创建工单',
+      cancelText: '仅消警',
+      onOk: () => {
+        // 创建关联工单
+        const workOrders = loadData('ibms_work_orders', []);
+        const nextNum = workOrders.length + 1;
+        const newWO = {
+          key: String(Date.now()),
+          id: `WO-${new Date().getFullYear()}${String(nextNum).padStart(3, '0')}`,
+          title: `告警处置：${record.ruleName}`,
+          status: '未处理',
+          type: '维修类',
+          location: record.registerName,
+          creator: '运维工程师',
+          description: `针对告警 [${record.id}] ${record.ruleName}（当前值：${record.currentValue}，触发条件：${record.threshold}）的闭环处置工单。`,
+          parentOrderId: '',
+          createTime: new Date().toLocaleString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }).replace(/\//g, '-'),
+          comments: [{ author: '系统', time: new Date().toLocaleTimeString().slice(0, 5), content: `由于触发告警[${record.id}] 自动生成派发该工单。` }],
+        };
+        saveData('ibms_work_orders', [...workOrders, newWO]);
+        message.success('告警已消除，关联工单已自动创建');
+      },
+      onCancel: () => {
+        message.success('告警已确认并结束');
+      },
+    });
+
+    // 从活跃列表移除
+    setActiveAlarms(activeAlarms.filter((a) => a.key !== record.key));
     setEndedAlarms((prev) => [endedRecord, ...prev]);
-    message.success('告警已确认并结束');
   };
 
   const columns = [
