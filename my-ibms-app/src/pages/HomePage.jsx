@@ -10,6 +10,7 @@ import {
 import { loadData, saveData } from '../services/storage';
 import { fetchProtocols } from '../services/protocolApi';
 import { useAuth } from '../services/auth';
+import { STATUS_COLOR } from '../utils/constants';
 
 // 简易折线图组件（纯 SVG 实现，不依赖额外库）
 function SimpleLineChart({ data1, data2, labels, title }) {
@@ -166,7 +167,7 @@ export default function HomePage() {
   const listenData = chartData.listenData;
   const alarmData = chartData.alarmData;
 
-  const statusColor = { '未处理': 'red', '处理中': 'orange', '已处理': 'green' };
+  const statusColor = STATUS_COLOR;
 
   const orderColumns = [
     { title: '标题', dataIndex: 'title', key: 'title', width: 200, ellipsis: true },

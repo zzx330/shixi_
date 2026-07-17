@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Card,
   Table,
@@ -14,8 +14,8 @@ import {
   Tag,
 } from 'antd';
 import { PlusOutlined, SearchOutlined, DeleteOutlined, EditOutlined } from '@ant-design/icons';
-import { loadData, saveData } from '../services/storage';
 import { useAuth } from '../services/auth';
+import { useLocalStorage } from '../utils/useLocalStorage';
 
 const STORAGE_KEY = 'ibms_measure_points';
 
@@ -30,9 +30,7 @@ const DEFAULT_DATA = [
 export default function MeasurePointPage() {
   const { user } = useAuth();
   const isReadOnly = user.role === 'LEADER';
-  const [data, setData] = useState(() => loadData(STORAGE_KEY, DEFAULT_DATA));
-
-  useEffect(() => { saveData(STORAGE_KEY, data); }, [data]);
+  const [data, setData] = useLocalStorage(STORAGE_KEY, DEFAULT_DATA);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingRecord, setEditingRecord] = useState(null);

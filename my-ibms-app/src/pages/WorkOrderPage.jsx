@@ -1,25 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '../services/auth';
 import {
-  Card,
-  Table,
-  Button,
-  Space,
-  Modal,
-  Form,
-  Input,
-  Select,
-  Tag,
-  message,
-  Popconfirm,
-  Drawer,
-  Steps,
-  List,
+  Card, Table, Button, Space, Modal, Form, Input, Select, Tag, message, Popconfirm, Drawer, Steps, List,
 } from 'antd';
 import { PlusOutlined, SearchOutlined, DeleteOutlined, EditOutlined, EyeOutlined, SendOutlined } from '@ant-design/icons';
-import { loadData, saveData } from '../services/storage';
+import { useLocalStorage } from '../utils/useLocalStorage';
+import { STATUS_COLOR } from '../utils/constants';
+import { formatNow, formatTimeNow } from '../utils/helpers';
 
 const STORAGE_KEY = 'ibms_work_orders';
+
 
 const DEFAULT_DATA = [
   { key: '1', id: 'WO-2026001', title: '2号楼空调机组例行维保', status: '未处理', type: '维修类', location: '2号楼A区', creator: '王工', description: '2号楼东侧大办公室空调制冷效果下降，室内温度升至28℃，需排查制冷系统。', parentOrderId: '', createTime: '2026-07-15 10:30', comments: [] },
@@ -38,9 +28,7 @@ export default function WorkOrderPage() {
   const { user } = useAuth();
   const isInspector = user.role === 'INSPECTOR';
   const isReadOnly = user.role === 'LEADER';
-  const [data, setData] = useState(() => loadData(STORAGE_KEY, DEFAULT_DATA));
-
-  useEffect(() => { saveData(STORAGE_KEY, data); }, [data]);
+  const [data, setData] = useLocalStorage(STORAGE_KEY, DEFAULT_DATA);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingRecord, setEditingRecord] = useState(null);
@@ -55,7 +43,7 @@ export default function WorkOrderPage() {
   const [drawerRecord, setDrawerRecord] = useState(null);
   const [commentText, setCommentText] = useState('');
 
-  const statusColor = { '未处理': 'red', '处理中': 'orange', '已处理': 'green' };
+  const statusColor = STATUS_COLOR;
 
   // 打开协作详情抽屉
   const openDrawer = (record) => {
@@ -78,7 +66,7 @@ export default function WorkOrderPage() {
       status: newStatus,
       comments: [
         ...(drawerRecord.comments || []),
-        { author: '运维工程师', time: new Date().toLocaleTimeString().slice(0, 5), content: logText },
+        { author: '运维工程师', time: formatTimeNow(), content: logText },
       ],
     };
     setData(data.map(item => item.key === drawerRecord.key ? updated : item));
@@ -93,7 +81,7 @@ export default function WorkOrderPage() {
       ...drawerRecord,
       comments: [
         ...(drawerRecord.comments || []),
-        { author: '运维工程师', time: new Date().toLocaleTimeString().slice(0, 5), content: commentText.trim() },
+        { author: '运维工程师', time: formatTimeNow(), content: commentText.trim() },
       ],
     };
     setData(data.map(item => item.key === drawerRecord.key ? updated : item));
@@ -118,10 +106,11 @@ export default function WorkOrderPage() {
     { title: '上级工单', dataIndex: 'parentOrderId', key: 'parentOrderId', width: 120, render: (v) => v || '-' },
     { title: '创建时间', dataIndex: 'createTime', key: 'createTime', width: 160 },
     {
-      title: '操作', key: 'action', width: 260, align: 'center', fixed: 'right',
+      title: '操作', key: 'action', width: isReadOnly ? 100 : 270, align: 'center', fixed: 'right',
+      onCell: () => ({ style: { background: '#fff' } }),
       render: isReadOnly
         ? (_, record) => (
-            <Button type="link" size="small" icon={<EyeOutlined />} onClick={() => openDrawer(record)} style={{ padding: '4px 8px' }}>详情</Button>
+            <Button type="link" size="small" icon={<EyeOutlined />} onClick={() => openDrawer(record)} style={{ padding: '10px 10px' }}>详情</Button>
           )
         : (_, record) => (
             <Space size={0}>
@@ -162,7 +151,7 @@ export default function WorkOrderPage() {
       } else {
         const nextNum = data.length + 1;
         const newId = `WO-${new Date().getFullYear()}${String(nextNum).padStart(3, '0')}`;
-        setData([...data, { key: String(Date.now()), id: newId, ...values, comments: [], createTime: new Date().toLocaleString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }).replace(/\//g, '-') }]);
+        setData([...data, { key: String(Date.now()), id: newId, ...values, comments: [], createTime: formatNow() }]);
         message.success('工单已创建');
       }
       setIsModalOpen(false);

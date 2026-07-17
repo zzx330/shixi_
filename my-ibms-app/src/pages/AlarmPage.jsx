@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Card,
   Tabs,
@@ -15,8 +15,9 @@ import {
   Popconfirm,
 } from 'antd';
 import { PlusOutlined, DeleteOutlined, EditOutlined, CheckCircleOutlined } from '@ant-design/icons';
-import { loadData, saveData } from '../services/storage';
 import { useAuth } from '../services/auth';
+import { useLocalStorage } from '../utils/useLocalStorage';
+import { ALARM_LEVEL_COLOR, ALARM_LEVEL_TEXT, ALARM_LEVEL_SHORT } from '../utils/constants';
 
 
 
@@ -49,8 +50,8 @@ function AlarmRuleTab({ rules, setRules }) {
   const [editingRecord, setEditingRecord] = useState(null);
   const [form] = Form.useForm();
 
-  const levelColor = { 1: 'red', 2: 'orange', 3: 'gold', 4: 'blue', 5: 'default' };
-  const levelText = { 1: '一级(紧急)', 2: '二级(严重)', 3: '三级(一般)', 4: '四级(提示)', 5: '五级(信息)' };
+  const levelColor = ALARM_LEVEL_COLOR;
+  const levelText = ALARM_LEVEL_TEXT;
 
   const columns = [
     { title: 'ID', dataIndex: 'id', key: 'id', width: 50 },
@@ -116,8 +117,10 @@ function AlarmRuleTab({ rules, setRules }) {
 
 // ==================== 正在告警事件 Tab ====================
 function ActiveAlarmTab({ activeAlarms, setActiveAlarms, setEndedAlarms }) {
-  const levelColor = { 1: 'red', 2: 'orange', 3: 'gold', 4: 'blue', 5: 'default' };
-  const levelText = { 1: '一级', 2: '二级', 3: '三级', 4: '四级', 5: '五级' };
+  const { user } = useAuth();
+  const isReadOnly = user.role === 'LEADER';
+  const levelColor = ALARM_LEVEL_COLOR;
+  const levelText = ALARM_LEVEL_SHORT;
 
   const confirmAlarm = (record) => {
     // 加入已结束列表
@@ -175,12 +178,12 @@ function ActiveAlarmTab({ activeAlarms, setActiveAlarms, setEndedAlarms }) {
     { title: '等级', dataIndex: 'level', key: 'level', width: 70, render: (l) => <Tag color={levelColor[l]}>{levelText[l]}</Tag> },
     { title: '开始时间', dataIndex: 'startTime', key: 'startTime', width: 160 },
     { title: '状态', dataIndex: 'status', key: 'status', width: 80, render: (s) => <Tag color="red">{s}</Tag> },
-    {
+    ...(isReadOnly ? [] : [{
       title: '操作', key: 'action', width: 120, align: 'center',
       render: (_, record) => (
         <Button type="primary" size="small" icon={<CheckCircleOutlined />} onClick={() => confirmAlarm(record)}>确认告警</Button>
       ),
-    },
+    }]),
   ];
 
   return (
@@ -192,8 +195,8 @@ function ActiveAlarmTab({ activeAlarms, setActiveAlarms, setEndedAlarms }) {
 
 // ==================== 已结束告警事件 Tab ====================
 function EndedAlarmTab({ endedAlarms }) {
-  const levelColor = { 1: 'red', 2: 'orange', 3: 'gold', 4: 'blue', 5: 'default' };
-  const levelText = { 1: '一级', 2: '二级', 3: '三级', 4: '四级', 5: '五级' };
+  const levelColor = ALARM_LEVEL_COLOR;
+  const levelText = ALARM_LEVEL_SHORT;
 
   const columns = [
     { title: '告警编号', dataIndex: 'id', key: 'id', width: 100 },
@@ -216,13 +219,9 @@ function EndedAlarmTab({ endedAlarms }) {
 
 // ==================== 主组件 ====================
 export default function AlarmPage() {
-  const [rules, setRules] = useState(() => loadData(STORAGE_KEY_RULES, DEFAULT_RULES));
-  const [activeAlarms, setActiveAlarms] = useState(() => loadData(STORAGE_KEY_ACTIVE, DEFAULT_ACTIVE));
-  const [endedAlarms, setEndedAlarms] = useState(() => loadData(STORAGE_KEY_ENDED, DEFAULT_ENDED));
-
-  useEffect(() => { saveData(STORAGE_KEY_RULES, rules); }, [rules]);
-  useEffect(() => { saveData(STORAGE_KEY_ACTIVE, activeAlarms); }, [activeAlarms]);
-  useEffect(() => { saveData(STORAGE_KEY_ENDED, endedAlarms); }, [endedAlarms]);
+  const [rules, setRules] = useLocalStorage(STORAGE_KEY_RULES, DEFAULT_RULES);
+  const [activeAlarms, setActiveAlarms] = useLocalStorage(STORAGE_KEY_ACTIVE, DEFAULT_ACTIVE);
+  const [endedAlarms, setEndedAlarms] = useLocalStorage(STORAGE_KEY_ENDED, DEFAULT_ENDED);
 
   const tabItems = [
     { key: 'rule', label: '告警规则配置', children: <AlarmRuleTab rules={rules} setRules={setRules} /> },

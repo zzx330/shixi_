@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { fetchProtocols, createProtocol, updateProtocol, deleteProtocol, importProtocols } from '../services/protocolApi';
 import { useAuth } from '../services/auth';
+import { convertValue } from '../utils/helpers';
 import {
   Card,
   Table,
@@ -67,14 +68,6 @@ export default function ProtocolPage() {
   }, []);
 
   const protocolNameOptions = customProtocolNames.map((n) => ({ value: n }));
-
-  const convertValue = (v) => {
-    if (v === 'true') return true;
-    if (v === 'false') return false;
-    if (v === '' || v === null || v === undefined) return v;
-    if (!isNaN(Number(v)) && String(v).trim() !== '') return Number(v);
-    return v;
-  };
 
   // ==================== 导入导出 ====================
 

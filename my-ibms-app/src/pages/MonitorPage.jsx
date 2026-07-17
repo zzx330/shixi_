@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Card,
   Tabs,
@@ -21,8 +21,8 @@ import {
   DeleteOutlined,
   EditOutlined,
 } from '@ant-design/icons';
-import { loadData, saveData } from '../services/storage';
 import { useAuth } from '../services/auth';
+import { useLocalStorage } from '../utils/useLocalStorage';
 
 const STORAGE_KEY_GROUPS = 'ibms_monitor_groups';
 
@@ -36,9 +36,7 @@ const DEFAULT_GROUPS = [
 function MonitorGroupTab() {
   const { user } = useAuth();
   const isReadOnly = user.role === 'LEADER';
-  const [data, setData] = useState(() => loadData(STORAGE_KEY_GROUPS, DEFAULT_GROUPS));
-
-  useEffect(() => { saveData(STORAGE_KEY_GROUPS, data); }, [data]);
+  const [data, setData] = useLocalStorage(STORAGE_KEY_GROUPS, DEFAULT_GROUPS);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);

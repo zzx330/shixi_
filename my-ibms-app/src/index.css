@@ -23,3 +23,8 @@ body {
 .ant-table-cell pre {
   text-align: left !important;
 }
+
+/* 表格固定列强制白色背景，防止穿模 */
+.ant-table-cell-fix-right {
+  background: #fff !important;
+}
