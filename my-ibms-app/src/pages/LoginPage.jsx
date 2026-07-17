@@ -35,12 +35,9 @@ export default function LoginPage() {
         bodyStyle={{ padding: 40 }}
       >
         <div style={{ textAlign: 'center', marginBottom: 30 }}>
-          <h2 style={{ color: '#1e2d3d', fontSize: 24, marginBottom: 8 }}>
+          <h2 style={{ color: '#1e2d3d', fontSize: 24 }}>
             IBMS 工控管理系统
           </h2>
-          <p style={{ color: '#666', fontSize: 13 }}>
-            根据用户账号及密码自动判定角色视图
-          </p>
         </div>
 
         <Form onFinish={onFinish} size="large">
@@ -58,16 +55,10 @@ export default function LoginPage() {
           </Form.Item>
           <Form.Item>
             <Button type="primary" htmlType="submit" block loading={loading}>
-              安全登录
+              登录
             </Button>
           </Form.Item>
         </Form>
-
-        <div style={{ textAlign: 'center', marginTop: 16 }}>
-          <p style={{ color: '#999', fontSize: 12 }}>
-            演示账号：engineer / engineer
-          </p>
-        </div>
       </Card>
     </div>
   );

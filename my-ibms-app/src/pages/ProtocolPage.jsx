@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { fetchProtocols, createProtocol, updateProtocol, deleteProtocol, importProtocols } from '../services/protocolApi';
+import { useAuth } from '../services/auth';
 import {
   Card,
   Table,
@@ -41,6 +42,8 @@ const PROTOCOL_KEY_OPTIONS = [
 ];
 
 export default function ProtocolPage() {
+  const { user } = useAuth();
+  const isReadOnly = user.role === 'LEADER';
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [customProtocolNames, setCustomProtocolNames] = useState([]);
@@ -220,6 +223,8 @@ export default function ProtocolPage() {
       },
     },
     {
+    },
+    ...(isReadOnly ? [] : [{
       title: '操作',
       key: 'action',
       width: 200,
@@ -232,7 +237,7 @@ export default function ProtocolPage() {
           </Popconfirm>
         </Space>
       ),
-    },
+    }]),
   ];
 
   // ==================== CRUD ====================
@@ -335,16 +340,20 @@ export default function ProtocolPage() {
               allowClear
               style={{ width: 200 }}
             />
-            <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
-              创建新协议
-            </Button>
-            <Upload
-              accept=".json"
-              showUploadList={false}
-              beforeUpload={handleFileImport}
-            >
-              <Button icon={<UploadOutlined />}>导入 JSON</Button>
-            </Upload>
+            {!isReadOnly && (
+              <>
+                <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
+                  创建新协议
+                </Button>
+                <Upload
+                  accept=".json"
+                  showUploadList={false}
+                  beforeUpload={handleFileImport}
+                >
+                  <Button icon={<UploadOutlined />}>导入 JSON</Button>
+                </Upload>
+              </>
+            )}
             <Button icon={<DownloadOutlined />} onClick={handleExport}>
               导出 JSON
             </Button>

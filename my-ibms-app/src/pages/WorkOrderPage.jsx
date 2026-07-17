@@ -37,6 +37,7 @@ const statusSteps = [
 export default function WorkOrderPage() {
   const { user } = useAuth();
   const isInspector = user.role === 'INSPECTOR';
+  const isReadOnly = user.role === 'LEADER';
   const [data, setData] = useState(() => loadData(STORAGE_KEY, DEFAULT_DATA));
 
   useEffect(() => { saveData(STORAGE_KEY, data); }, [data]);
@@ -118,15 +119,19 @@ export default function WorkOrderPage() {
     { title: '创建时间', dataIndex: 'createTime', key: 'createTime', width: 160 },
     {
       title: '操作', key: 'action', width: 260, align: 'center', fixed: 'right',
-      render: (_, record) => (
-        <Space size={0}>
-          <Button type="link" size="small" icon={<EyeOutlined />} onClick={() => openDrawer(record)} style={{ padding: '4px 8px' }}>详情</Button>
-          <Button type="link" size="small" icon={<EditOutlined />} onClick={() => handleEdit(record)} style={{ padding: '4px 8px' }}>编辑</Button>
-          <Popconfirm title="确定删除该工单？" onConfirm={() => handleDelete(record.key)}>
-            <Button type="link" danger size="small" icon={<DeleteOutlined />} style={{ padding: '4px 8px' }}>删除</Button>
-          </Popconfirm>
-        </Space>
-      ),
+      render: isReadOnly
+        ? (_, record) => (
+            <Button type="link" size="small" icon={<EyeOutlined />} onClick={() => openDrawer(record)} style={{ padding: '4px 8px' }}>详情</Button>
+          )
+        : (_, record) => (
+            <Space size={0}>
+              <Button type="link" size="small" icon={<EyeOutlined />} onClick={() => openDrawer(record)} style={{ padding: '4px 8px' }}>详情</Button>
+              <Button type="link" size="small" icon={<EditOutlined />} onClick={() => handleEdit(record)} style={{ padding: '4px 8px' }}>编辑</Button>
+              <Popconfirm title="确定删除该工单？" onConfirm={() => handleDelete(record.key)}>
+                <Button type="link" danger size="small" icon={<DeleteOutlined />} style={{ padding: '4px 8px' }}>删除</Button>
+              </Popconfirm>
+            </Space>
+          ),
     },
   ];
 
@@ -172,7 +177,9 @@ export default function WorkOrderPage() {
             <Select placeholder="按状态筛选" allowClear style={{ width: 120 }} value={statusFilter} onChange={setStatusFilter}
               options={[{ value: '未处理', label: '未处理' }, { value: '处理中', label: '处理中' }, { value: '已处理', label: '已处理' }]} />
             <Input placeholder="搜索工单..." prefix={<SearchOutlined />} value={searchText} onChange={(e) => setSearchText(e.target.value)} allowClear style={{ width: 220 }} />
-            <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>创建新工单</Button>
+            {!isReadOnly && (
+              <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>创建新工单</Button>
+            )}
           </Space>
         }>
         <Table columns={columns} dataSource={filteredData} pagination={{ pageSize: 10 }} scroll={{ x: 1400 }} />

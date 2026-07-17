@@ -15,6 +15,7 @@ import {
 } from 'antd';
 import { PlusOutlined, SearchOutlined, DeleteOutlined, EditOutlined } from '@ant-design/icons';
 import { loadData, saveData } from '../services/storage';
+import { useAuth } from '../services/auth';
 
 const STORAGE_KEY = 'ibms_measure_points';
 
@@ -27,6 +28,8 @@ const DEFAULT_DATA = [
 ];
 
 export default function MeasurePointPage() {
+  const { user } = useAuth();
+  const isReadOnly = user.role === 'LEADER';
   const [data, setData] = useState(() => loadData(STORAGE_KEY, DEFAULT_DATA));
 
   useEffect(() => { saveData(STORAGE_KEY, data); }, [data]);
@@ -55,7 +58,7 @@ export default function MeasurePointPage() {
     { title: '单位', dataIndex: 'unit', key: 'unit', width: 60 },
     { title: '协议编号', dataIndex: 'protocolId', key: 'protocolId', width: 90 },
     { title: '位置', dataIndex: 'location', key: 'location', width: 120 },
-    {
+    ...(isReadOnly ? [] : [{
       title: '操作',
       key: 'action',
       width: 200,
@@ -69,7 +72,7 @@ export default function MeasurePointPage() {
           </Popconfirm>
         </Space>
       ),
-    },
+    }]),
   ];
 
   // 筛选
@@ -149,9 +152,11 @@ export default function MeasurePointPage() {
               allowClear
               style={{ width: 220 }}
             />
-            <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
-              创建新测点
-            </Button>
+            {!isReadOnly && (
+              <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
+                创建新测点
+              </Button>
+            )}
           </Space>
         }
       >

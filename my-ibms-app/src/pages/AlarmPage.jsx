@@ -16,6 +16,9 @@ import {
 } from 'antd';
 import { PlusOutlined, DeleteOutlined, EditOutlined, CheckCircleOutlined } from '@ant-design/icons';
 import { loadData, saveData } from '../services/storage';
+import { useAuth } from '../services/auth';
+
+
 
 const STORAGE_KEY_RULES = 'ibms_alarm_rules';
 const STORAGE_KEY_ACTIVE = 'ibms_alarm_active';
@@ -40,6 +43,8 @@ const DEFAULT_ENDED = [
 
 // ==================== 告警规则配置 Tab ====================
 function AlarmRuleTab({ rules, setRules }) {
+  const { user } = useAuth();
+  const isReadOnly = user.role === 'LEADER';
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingRecord, setEditingRecord] = useState(null);
   const [form] = Form.useForm();
@@ -55,7 +60,7 @@ function AlarmRuleTab({ rules, setRules }) {
     { title: '重置规则', dataIndex: 'resetRule', key: 'resetRule', width: 110, render: (v) => <Tag color="green">{v}</Tag> },
     { title: '告警等级', dataIndex: 'level', key: 'level', width: 120, render: (l) => <Tag color={levelColor[l]}>{levelText[l]}</Tag> },
     { title: '创建时间', dataIndex: 'createTime', key: 'createTime', width: 160 },
-    {
+    ...(isReadOnly ? [] : [{
       title: '操作', key: 'action', width: 200, align: 'center',
       render: (_, record) => (
         <Space size={0}>
@@ -65,7 +70,7 @@ function AlarmRuleTab({ rules, setRules }) {
           </Popconfirm>
         </Space>
       ),
-    },
+    }]),
   ];
 
   const handleAdd = () => { setEditingRecord(null); form.resetFields(); setIsModalOpen(true); };
@@ -88,7 +93,7 @@ function AlarmRuleTab({ rules, setRules }) {
 
   return (
     <div>
-      <Card bordered={false} extra={<Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>创建新规则</Button>}>
+      <Card bordered={false} extra={!isReadOnly && <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>创建新规则</Button>}>
         <Table columns={columns} dataSource={rules} pagination={false} />
       </Card>
       <Modal title={editingRecord ? '编辑告警规则' : '创建新告警规则'} open={isModalOpen} onOk={handleModalOk} onCancel={() => setIsModalOpen(false)} destroyOnClose>

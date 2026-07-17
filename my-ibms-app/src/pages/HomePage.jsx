@@ -9,6 +9,7 @@ import {
 } from '@ant-design/icons';
 import { loadData, saveData } from '../services/storage';
 import { fetchProtocols } from '../services/protocolApi';
+import { useAuth } from '../services/auth';
 
 // 简易折线图组件（纯 SVG 实现，不依赖额外库）
 function SimpleLineChart({ data1, data2, labels, title }) {
@@ -95,6 +96,9 @@ function SimpleLineChart({ data1, data2, labels, title }) {
 
 export default function HomePage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  // ADMIN/ENGINEER/LEADER 可以点击卡片跳转，CS/INSPECTOR 不能
+  const canJump = user.role === 'ADMIN' || user.role === 'ENGINEER' || user.role === 'LEADER';
 
   // ========== 从 localStorage 读取各模块数据，实时计算统计值 ==========
 
@@ -179,7 +183,7 @@ export default function HomePage() {
       {/* 上方四大统计卡片 */}
       <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
         <Col xs={24} sm={12} md={6}>
-          <Card bordered={false} hoverable onClick={() => navigate('/protocol')} style={{ cursor: 'pointer' }}>
+          <Card bordered={false} hoverable onClick={canJump ? () => navigate('/protocol') : undefined} style={{ cursor: canJump ? 'pointer' : 'default' }}>
             <Statistic
               title="接入协议数"
               value={protocolCount}
@@ -190,7 +194,7 @@ export default function HomePage() {
           </Card>
         </Col>
         <Col xs={24} sm={12} md={6}>
-          <Card bordered={false} hoverable onClick={() => navigate('/measure-point')} style={{ cursor: 'pointer' }}>
+          <Card bordered={false} hoverable onClick={canJump ? () => navigate('/measure-point') : undefined} style={{ cursor: canJump ? 'pointer' : 'default' }}>
             <Statistic
               title="点位总数 (物理+逻辑)"
               value={totalPoints}
@@ -201,7 +205,7 @@ export default function HomePage() {
           </Card>
         </Col>
         <Col xs={24} sm={12} md={6}>
-          <Card bordered={false} hoverable onClick={() => navigate('/monitor')} style={{ cursor: 'pointer' }}>
+          <Card bordered={false} hoverable onClick={canJump ? () => navigate('/monitor') : undefined} style={{ cursor: canJump ? 'pointer' : 'default' }}>
             <Statistic
               title="活跃监听点位"
               value={activePoints}
@@ -212,7 +216,7 @@ export default function HomePage() {
           </Card>
         </Col>
         <Col xs={24} sm={12} md={6}>
-          <Card bordered={false} hoverable onClick={() => navigate('/alarm')} style={{ cursor: 'pointer' }}>
+          <Card bordered={false} hoverable onClick={canJump ? () => navigate('/alarm') : undefined} style={{ cursor: canJump ? 'pointer' : 'default' }}>
             <Statistic
               title="当前告警数"
               value={activeAlarms}

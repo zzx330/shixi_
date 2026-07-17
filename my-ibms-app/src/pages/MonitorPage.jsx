@@ -22,6 +22,7 @@ import {
   EditOutlined,
 } from '@ant-design/icons';
 import { loadData, saveData } from '../services/storage';
+import { useAuth } from '../services/auth';
 
 const STORAGE_KEY_GROUPS = 'ibms_monitor_groups';
 
@@ -33,6 +34,8 @@ const DEFAULT_GROUPS = [
 
 // ==================== 监听组配置 Tab ====================
 function MonitorGroupTab() {
+  const { user } = useAuth();
+  const isReadOnly = user.role === 'LEADER';
   const [data, setData] = useState(() => loadData(STORAGE_KEY_GROUPS, DEFAULT_GROUPS));
 
   useEffect(() => { saveData(STORAGE_KEY_GROUPS, data); }, [data]);
@@ -84,7 +87,7 @@ function MonitorGroupTab() {
         />
       ),
     },
-    {
+    ...(isReadOnly ? [] : [{
       title: '操作',
       key: 'action',
       width: 200,
@@ -98,7 +101,7 @@ function MonitorGroupTab() {
           </Popconfirm>
         </Space>
       ),
-    },
+    }]),
   ];
 
   const filteredData = searchText
@@ -183,12 +186,16 @@ function MonitorGroupTab() {
               allowClear
               style={{ width: 200 }}
             />
-            <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
-              创建监听组
-            </Button>
-            <Button danger icon={<DeleteOutlined />} onClick={() => setIsDeleteModalOpen(true)}>
-              删除监听组
-            </Button>
+            {!isReadOnly && (
+              <>
+                <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
+                  创建监听组
+                </Button>
+                <Button danger icon={<DeleteOutlined />} onClick={() => setIsDeleteModalOpen(true)}>
+                  删除监听组
+                </Button>
+              </>
+            )}
           </Space>
         }
       >
