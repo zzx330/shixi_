@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Row, Col, Card, Statistic, Table, Tag } from 'antd';
 import {
@@ -6,8 +6,9 @@ import {
   AimOutlined,
   SoundOutlined,
   AlertOutlined,
-  ArrowUpOutlined,
 } from '@ant-design/icons';
+import { loadData, saveData } from '../services/storage';
+import { fetchProtocols } from '../services/protocolApi';
 
 // 简易折线图组件（纯 SVG 实现，不依赖额外库）
 function SimpleLineChart({ data1, data2, labels, title }) {
@@ -95,28 +96,71 @@ function SimpleLineChart({ data1, data2, labels, title }) {
 export default function HomePage() {
   const navigate = useNavigate();
 
-  // 模拟数据（已脱敏）
-  const stats = {
-    protocolCount: 8,
-    totalPoints: 186,
-    activePoints: 165,
-    activeAlarms: 3,
-  };
+  // ========== 从 localStorage 读取各模块数据，实时计算统计值 ==========
 
-  // 最近7天趋势数据
-  const chartLabels = ['7/9', '7/10', '7/11', '7/12', '7/13', '7/14', '7/15'];
-  const listenData = [78, 92, 105, 113, 128, 136, 142];
-  const alarmData = [2, 4, 1, 5, 3, 4, 3];
+  // 协议数据 → 协议数（通过 API 层获取，确保拿到默认值）
+  const [protocolCount, setProtocolCount] = useState(0);
+  useEffect(() => {
+    fetchProtocols().then(data => setProtocolCount(data.length));
+  }, []);
 
-  // 最近工单
-  const recentOrders = [
-    { key: '1', id: 'WO-2026001', title: '2号楼空调机组例行维保', status: '处理中', type: '维修类', location: '2号楼A区', creator: '王工', time: '2026-07-15 10:30' },
-    { key: '2', id: 'WO-2026002', title: '配电柜定期巡检', status: '未处理', type: '定期巡检类', location: 'B2配电室', creator: '李工', time: '2026-07-15 09:00' },
-    { key: '3', id: 'WO-2026003', title: '冷却塔风扇异响排查', status: '已处理', type: '维修类', location: '顶层平台', creator: '赵工', time: '2026-07-14 16:20' },
-    { key: '4', id: 'WO-2026004', title: '消防水泵月度测试', status: '已处理', type: '定期巡检类', location: 'B2消防泵房', creator: '孙工', time: '2026-07-14 14:00' },
-    { key: '5', id: 'WO-2026005', title: '新风系统滤网更换', status: '未处理', type: '维修类', location: '3号楼机房', creator: '刘工', time: '2026-07-14 11:00' },
-    { key: '6', id: 'WO-2026006', title: '电梯年检保养', status: '已处理', type: '定期巡检类', location: '全楼层', creator: '陈工', time: '2026-07-13 15:30' },
-  ];
+  // 测点数据 → 点位总数
+  const measurePoints = loadData('ibms_measure_points', []);
+  const totalPoints = measurePoints.length;
+
+  // 监听组数据 → 活跃监听点位（正在监听的组数）
+  const monitorGroups = loadData('ibms_monitor_groups', []);
+  const activePoints = monitorGroups.filter(g => g.isMonitoring).length;
+
+  // 告警数据 → 当前告警数（正在告警事件的数量）
+  const activeAlarms = loadData('ibms_alarm_active', []).length;
+
+  // ========== 工单数据（与工单管理页共享） ==========
+  const recentOrders = loadData('ibms_work_orders', [
+    { key: '1', id: 'WO-2026001', title: '2号楼空调机组例行维保', status: '处理中', type: '维修类', location: '2号楼A区', creator: '王工', createTime: '2026-07-15 10:30' },
+    { key: '2', id: 'WO-2026002', title: '配电柜定期巡检', status: '未处理', type: '定期巡检类', location: 'B2配电室', creator: '李工', createTime: '2026-07-15 09:00' },
+    { key: '3', id: 'WO-2026003', title: '冷却塔风扇异响排查', status: '已处理', type: '维修类', location: '顶层平台', creator: '赵工', createTime: '2026-07-14 16:20' },
+    { key: '4', id: 'WO-2026004', title: '消防水泵月度测试', status: '已处理', type: '定期巡检类', location: 'B2消防泵房', creator: '孙工', createTime: '2026-07-14 14:00' },
+    { key: '5', id: 'WO-2026005', title: '新风系统滤网更换', status: '未处理', type: '维修类', location: '3号楼机房', creator: '刘工', createTime: '2026-07-14 11:00' },
+    { key: '6', id: 'WO-2026006', title: '电梯年检保养', status: '已处理', type: '定期巡检类', location: '全楼层', creator: '陈工', createTime: '2026-07-13 15:30' },
+  ]).map(item => ({
+    ...item,
+    time: item.createTime,
+  }));
+
+  // ========== 折线图趋势数据（从 localStorage 读取 + 自动更新今天） ==========
+  // 生成近7天的日期标签
+  const today = new Date();
+  const chartLabels = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(today);
+    d.setDate(d.getDate() - 6 + i);
+    return `${d.getMonth() + 1}/${d.getDate()}`;
+  });
+
+  // 从 localStorage 读取趋势历史，没有则初始化
+  const chartData = loadData('ibms_chart_data', {
+    labels: chartLabels,
+    listenData: [0, 0, 0, 0, 0, 0, 0],
+    alarmData: [0, 0, 0, 0, 0, 0, 0],
+  });
+
+  // 今天在数组中的位置（索引6是今天）
+  const todayLabel = chartLabels[6];
+  const todayIndex = chartData.labels.indexOf(todayLabel);
+
+  // 用当前实时数据更新今天的值
+  if (todayIndex >= 0) {
+    chartData.listenData[todayIndex] = monitorGroups.length;
+    chartData.alarmData[todayIndex] = activeAlarms;
+  }
+
+  // 保存回 localStorage
+  useEffect(() => {
+    saveData('ibms_chart_data', chartData);
+  });
+
+  const listenData = chartData.listenData;
+  const alarmData = chartData.alarmData;
 
   const statusColor = { '未处理': 'red', '处理中': 'orange', '已处理': 'green' };
 
@@ -138,7 +182,7 @@ export default function HomePage() {
           <Card bordered={false} hoverable onClick={() => navigate('/protocol')} style={{ cursor: 'pointer' }}>
             <Statistic
               title="接入协议数"
-              value={stats.protocolCount}
+              value={protocolCount}
               prefix={<ApiOutlined />}
               suffix="个"
               valueStyle={{ color: '#1890ff' }}
@@ -149,7 +193,7 @@ export default function HomePage() {
           <Card bordered={false} hoverable onClick={() => navigate('/measure-point')} style={{ cursor: 'pointer' }}>
             <Statistic
               title="点位总数 (物理+逻辑)"
-              value={stats.totalPoints}
+              value={totalPoints}
               prefix={<AimOutlined />}
               suffix="个"
               valueStyle={{ color: '#52c41a' }}
@@ -160,9 +204,9 @@ export default function HomePage() {
           <Card bordered={false} hoverable onClick={() => navigate('/monitor')} style={{ cursor: 'pointer' }}>
             <Statistic
               title="活跃监听点位"
-              value={stats.activePoints}
+              value={activePoints}
               prefix={<SoundOutlined />}
-              suffix={`/ ${stats.totalPoints}`}
+              suffix={`/ ${totalPoints}`}
               valueStyle={{ color: '#722ed1' }}
             />
           </Card>
@@ -171,7 +215,7 @@ export default function HomePage() {
           <Card bordered={false} hoverable onClick={() => navigate('/alarm')} style={{ cursor: 'pointer' }}>
             <Statistic
               title="当前告警数"
-              value={stats.activeAlarms}
+              value={activeAlarms}
               prefix={<AlertOutlined />}
               suffix="条"
               valueStyle={{ color: '#ff4d4f' }}

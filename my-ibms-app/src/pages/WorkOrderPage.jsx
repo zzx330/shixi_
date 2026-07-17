@@ -33,6 +33,8 @@ export default function WorkOrderPage() {
   const [editingRecord, setEditingRecord] = useState(null);
   const [searchText, setSearchText] = useState('');
   const [statusFilter, setStatusFilter] = useState(undefined);
+  const [descModalOpen, setDescModalOpen] = useState(false);
+  const [descContent, setDescContent] = useState({ title: '', desc: '' });
   const [form] = Form.useForm();
 
   const statusColor = {
@@ -59,7 +61,18 @@ export default function WorkOrderPage() {
       dataIndex: 'description',
       key: 'description',
       width: 250,
-      ellipsis: true,
+      ellipsis: { showTitle: false },
+      render: (text, record) => (
+        <span
+          style={{ cursor: 'pointer', color: '#1890ff' }}
+          onClick={() => {
+            setDescContent({ title: record.title, desc: text });
+            setDescModalOpen(true);
+          }}
+        >
+          {text}
+        </span>
+      ),
     },
     {
       title: '上级工单',
@@ -241,6 +254,19 @@ export default function WorkOrderPage() {
             <Input placeholder="关联的上级工单编号（可选）" />
           </Form.Item>
         </Form>
+      </Modal>
+
+      {/* 描述查看弹窗 */}
+      <Modal
+        title={descContent.title}
+        open={descModalOpen}
+        onCancel={() => setDescModalOpen(false)}
+        footer={<Button onClick={() => setDescModalOpen(false)}>关闭</Button>}
+        width={560}
+      >
+        <p style={{ fontSize: 15, lineHeight: 1.8, whiteSpace: 'pre-wrap' }}>
+          {descContent.desc}
+        </p>
       </Modal>
     </div>
   );
