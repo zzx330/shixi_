@@ -16,8 +16,10 @@ import {
 } from 'antd';
 import { PlusOutlined, DeleteOutlined, EditOutlined, CheckCircleOutlined } from '@ant-design/icons';
 import { useAuth } from '../services/auth';
+import { loadData, saveData } from '../services/storage';
 import { useLocalStorage } from '../utils/useLocalStorage';
 import { ALARM_LEVEL_COLOR, ALARM_LEVEL_TEXT, ALARM_LEVEL_SHORT } from '../utils/constants';
+import { formatNow, formatTimeNow } from '../utils/helpers';
 
 
 
@@ -33,8 +35,11 @@ const DEFAULT_RULES = [
 ];
 
 const DEFAULT_ACTIVE = [
-  { key: '1', id: 'ALM-001', ruleName: '电流过载告警', registerId: 3, registerName: '配电柜电流A相', currentValue: '228.6', threshold: '>= 200', level: 3, startTime: '2026-07-15 14:30', status: '告警中' },
-  { key: '2', id: 'ALM-002', ruleName: '设备离线告警', registerId: 4, registerName: '冷却塔风扇启停控制', currentValue: 'false', threshold: '= false', level: 1, startTime: '2026-07-15 12:15', status: '告警中' },
+  { key: '1', id: 'ALM-001', ruleName: '电流过载告警', registerId: 3, registerName: '配电柜电流A相', currentValue: '228.6', threshold: '>= 200', level: 3, startTime: '2026-07-20 14:30', status: '告警中' },
+  { key: '2', id: 'ALM-002', ruleName: '设备离线告警', registerId: 4, registerName: '冷却塔风扇启停控制', currentValue: 'false', threshold: '= false', level: 1, startTime: '2026-07-20 12:15', status: '告警中' },
+  { key: '3', id: 'ALM-003', ruleName: '环境温度过高告警', registerId: 1, registerName: '一层大厅环境温度', currentValue: '32.5', threshold: '>= 30', level: 2, startTime: '2026-07-20 11:00', status: '告警中' },
+  { key: '4', id: 'ALM-004', ruleName: '水泵出口压力低告警', registerId: 5, registerName: '消防水泵出口压力', currentValue: '0.06', threshold: '<= 0.1', level: 2, startTime: '2026-07-20 10:45', status: '告警中' },
+  { key: '5', id: 'ALM-005', ruleName: '配电柜电流B相过载', registerId: 3, registerName: '配电柜电流B相', currentValue: '205.3', threshold: '>= 200', level: 3, startTime: '2026-07-20 09:30', status: '告警中' },
 ];
 
 const DEFAULT_ENDED = [
@@ -149,12 +154,17 @@ function ActiveAlarmTab({ activeAlarms, setActiveAlarms, setEndedAlarms }) {
           title: `告警处置：${record.ruleName}`,
           status: '未处理',
           type: '维修类',
+          priority: 'HIGH',
+          source: '告警自动生成',
+          assignee: '陈巡检-海淀区',
           location: record.registerName,
-          creator: '运维工程师',
+          creator: '李丽 (客服专员)',
           description: `针对告警 [${record.id}] ${record.ruleName}（当前值：${record.currentValue}，触发条件：${record.threshold}）的闭环处置工单。`,
-          parentOrderId: '',
-          createTime: new Date().toLocaleString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }).replace(/\//g, '-'),
-          comments: [{ author: '系统', time: new Date().toLocaleTimeString().slice(0, 5), content: `由于触发告警[${record.id}] 自动生成派发该工单。` }],
+          createTime: formatNow(),
+          deadline: '',
+          comments: [{ author: '系统', time: formatTimeNow(), content: `由于触发告警[${record.id}] 自动生成派发该工单。` }],
+          photos: [],
+          retestData: null,
         };
         saveData('ibms_work_orders', [...workOrders, newWO]);
         message.success('告警已消除，关联工单已自动创建');
