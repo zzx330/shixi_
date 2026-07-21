@@ -1,5 +1,9 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { ConfigProvider } from 'antd';
+import zhCN from 'antd/locale/zh_CN';
+import dayjs from 'dayjs';
+import 'dayjs/locale/zh-cn';
 import { AuthProvider, useAuth } from './services/auth';
 import MainLayout from './components/MainLayout';
 import LoginPage from './pages/LoginPage';
@@ -11,6 +15,8 @@ import WorkOrderPage from './pages/WorkOrderPage';
 import AlarmPage from './pages/AlarmPage';
 import UserManagePage from './pages/UserManagePage';
 import ReportPage from './pages/ReportPage';
+
+dayjs.locale('zh-cn');
 
 function AppRoutes() {
   const { user } = useAuth();
@@ -37,10 +43,12 @@ function AppRoutes() {
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <AuthProvider>
-        <AppRoutes />
-      </AuthProvider>
-    </BrowserRouter>
+    <ConfigProvider locale={zhCN}>
+      <BrowserRouter>
+        <AuthProvider>
+          <AppRoutes />
+        </AuthProvider>
+      </BrowserRouter>
+    </ConfigProvider>
   );
 }
