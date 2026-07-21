@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
+import dayjs from 'dayjs';
 import { useAuth } from '../services/auth';
 import {
-  Card, Table, Button, Space, Modal, Form, Input, Select, Tag, message, Popconfirm,
+  Card, Table, Button, Space, Modal, Form, Input, Select, DatePicker, Tag, message, Popconfirm,
   Drawer, Steps, Upload, Descriptions, Timeline, Typography,
 } from 'antd';
 import {
@@ -211,7 +212,12 @@ export default function WorkOrderPage() {
 
   const handleEdit = (record) => {
     setEditingRecord(record);
-    form.setFieldsValue(record);
+    // 时间字段是字符串，需要转为 dayjs 对象供 DatePicker 使用
+    form.setFieldsValue({
+      ...record,
+      createTime: record.createTime ? dayjs(record.createTime) : null,
+      deadline: record.deadline ? dayjs(record.deadline) : null,
+    });
     setIsModalOpen(true);
   };
 
@@ -222,15 +228,22 @@ export default function WorkOrderPage() {
 
   const handleModalOk = () => {
     form.validateFields().then(values => {
+      // 处理 DatePicker 的值：转为字符串
+      const formatDate = (v) => v ? (typeof v === 'string' ? v : v.format('YYYY-MM-DD HH:mm')) : '';
+      const formatted = {
+        ...values,
+        createTime: formatDate(values.createTime),
+        deadline: formatDate(values.deadline),
+      };
       if (editingRecord) {
-        setData(data.map(item => item.key === editingRecord.key ? { ...item, ...values } : item));
+        setData(data.map(item => item.key === editingRecord.key ? { ...item, ...formatted } : item));
         message.success('工单已更新');
       } else {
         const nextNum = data.length + 1;
         const newId = `WO-${new Date().getFullYear()}${String(nextNum).padStart(3, '0')}`;
         setData([...data, {
-          key: String(Date.now()), id: newId, ...values,
-          comments: [{ author: user.realname, time: formatTimeNow(), type: 'create', content: `工单创建，来源：${values.source}。` }],
+          key: String(Date.now()), id: newId, ...formatted,
+          comments: [{ author: user.realname, time: formatTimeNow(), type: 'create', content: `工单创建，来源：${formatted.source}。` }],
           photos: [], retestData: null,
           createTime: formatNow(),
         }]);
@@ -344,7 +357,12 @@ export default function WorkOrderPage() {
           <Form.Item name="location" label="位置" rules={[{ required: true }]}><Input placeholder="例如: 2号楼A区" /></Form.Item>
           <Form.Item name="creator" label="创建者"><Input placeholder="创建者姓名" /></Form.Item>
           <Form.Item name="description" label="描述"><TextArea rows={3} placeholder="详细描述..." /></Form.Item>
-          <Form.Item name="deadline" label="截止时间"><Input placeholder="例如: 2026-07-21 18:00" /></Form.Item>
+          <Form.Item name="createTime" label="创建时间">
+            <DatePicker showTime format="YYYY-MM-DD HH:mm" placeholder="选择创建时间" style={{ width: '100%' }} />
+          </Form.Item>
+          <Form.Item name="deadline" label="截止时间">
+            <DatePicker showTime format="YYYY-MM-DD HH:mm" placeholder="选择截止时间" style={{ width: '100%' }} />
+          </Form.Item>
         </Form>
       </Modal>
 
